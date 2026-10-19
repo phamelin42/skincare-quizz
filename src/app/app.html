@@ -1,0 +1,9 @@
+<header class="app-header">
+  <h1 class="app-title">{{ title }}</h1>
+  <fd-switch [checked]="isDark()" (checkedChange)="setDark($event)">Thème nuit</fd-switch>
+</header>
+
+<main class="app-main">
+  <p class="app-lead">{{ tagline }}</p>
+  <p class="app-soon">En construction.</p>
+</main>

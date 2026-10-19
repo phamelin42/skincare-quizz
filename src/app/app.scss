@@ -1,0 +1,37 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: 100dvh;
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+}
+.app-title {
+  margin: 0;
+  font: 400 24px/30px var(--font-display);
+  color: var(--ink);
+}
+.app-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.app-lead,
+.app-soon {
+  margin: 0;
+  color: var(--ink);
+}
+@media (min-width: 48rem) {
+  .app {
+    padding: var(--space-8);
+  }
+}
