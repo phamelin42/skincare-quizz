@@ -24,6 +24,8 @@ export interface Product {
   readonly card: string;
   /** Pour `serum` et `evening` : l’actif (clé d’`INGREDIENTS`) ; `null` pour les autres cartes. */
   readonly active: string | null;
+  /** Pour `sunscreen` : l’indice de protection ; `null` ailleurs. */
+  readonly spf: 30 | 50 | null;
   readonly asin: string;
   /** Liste INCI recopiée de la fiche du fabricant. */
   readonly inci: readonly string[];
@@ -48,7 +50,8 @@ export interface Product {
 ## Garde-fous (`profile.spec.ts`, toutes les combinaisons de réponses)
 
 - Carte `serum` ou `evening` : la liste INCI du produit contient au moins un INCI de son actif (`INGREDIENTS[active].inci`), et le produit n'est proposé que si l'actif est celui du profil.
-- Autres cartes (nettoyant, hydratant, SPF) : la liste INCI contient au moins un des `labels` que la carte affiche pour ce profil.
+- Cartes nettoyant et hydratant : la liste INCI contient au moins un des `labels` que la carte affiche pour ce profil.
+- Carte écran solaire : le `spf` du produit (30 ou 50) est celui du profil ; pour un profil réactif, la liste INCI contient `Zinc Oxide` ou `Titanium Dioxide` (filtres minéraux, comme les `labels` de la carte).
 - Un produit proposé à un profil réactif ne contient ni `Parfum` ni `Fragrance`.
 - L'ASIN respecte `^[A-Z0-9]{10}$` ; chaque produit a une source en `https://` et une date ; les `id` sont uniques.
 - Les textes ne contiennent aucune promesse de résultat.
