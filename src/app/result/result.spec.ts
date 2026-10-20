@@ -9,12 +9,10 @@ describe('Result', () => {
   afterEach(() => vi.useRealTimers());
 
   /** Première option partout : peau grasse, sérum à la niacinamide (voir quiz.service.spec.ts). */
-  async function render(catalogue?: readonly (typeof FIXTURE_CATALOGUE)[number][]) {
-    if (catalogue) {
-      TestBed.configureTestingModule({
-        providers: [{ provide: PRODUCT_CATALOGUE, useValue: catalogue }],
-      });
-    }
+  async function render(catalogue: readonly (typeof FIXTURE_CATALOGUE)[number][]) {
+    TestBed.configureTestingModule({
+      providers: [{ provide: PRODUCT_CATALOGUE, useValue: catalogue }],
+    });
     const quiz = TestBed.inject(QuizService);
     // Les minuteries du parcours sont simulées ; le rendu, lui, attend de vraies minuteries.
     vi.useFakeTimers();
@@ -33,7 +31,7 @@ describe('Result', () => {
   const count = (text: string, part: string) => text.split(part).length - 1;
 
   it('n’affiche aucun exemple ni mention d’affiliation quand le catalogue est vide', async () => {
-    const element = await render();
+    const element = await render([]);
     expect(element.querySelector('app-examples')).toBeNull();
     expect(element.textContent).not.toContain('Partenaire Amazon');
     expect(element.textContent).not.toContain('Exemples sur Amazon');
@@ -73,7 +71,7 @@ describe('Result', () => {
   });
 
   it('garde l’encart « Ceci n’est pas un avis médical » sans catalogue', async () => {
-    const element = await render();
+    const element = await render([]);
     expect(element.querySelector('fd-alert')?.textContent).toContain(
       'Ceci n’est pas un avis médical',
     );

@@ -103,6 +103,9 @@ describe('QuizService', () => {
   }
 
   it('n’associe aucun exemple tant que le catalogue est vide', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [{ provide: PRODUCT_CATALOGUE, useValue: [] }] });
+    quiz = TestBed.inject(QuizService);
     const { products } = showResult();
     expect(products.length).toBeGreaterThan(0);
     expect(products.map((card) => card.examples)).toEqual(products.map(() => []));
