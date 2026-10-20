@@ -54,7 +54,8 @@ export interface Product {
 - Carte écran solaire : le `spf` du produit (30 ou 50) est celui du profil ; pour un profil réactif, la liste INCI contient `Zinc Oxide` ou `Titanium Dioxide` (filtres minéraux, comme les `labels` de la carte).
 - Un produit proposé à un profil réactif ne contient ni `Parfum` ni `Fragrance`.
 - L'ASIN respecte `^[A-Z0-9]{10}$` ; chaque produit a une source en `https://` et une date ; les `id` sont uniques.
-- Les textes ne contiennent aucune promesse de résultat.
+- Les textes ne contiennent aucune promesse de résultat : `catalogueDefects` relit le nom, la marque et chaque INCI, et les deux mentions affichées, avec la liste `PROMISE` de `products.ts`.
+- La comparaison des INCI ignore la casse et une précision finale entre `(…)` ou `[…]` (`Titanium Dioxide [nano]` compte comme `Titanium Dioxide`). L'`active` d'un `serum` ou d'un `evening` est limité aux clés de `SERUM_NAMES` et `EVENING_TITLES`, les seules que le profil demande. Le bloc d'exemples est projeté dans l'emplacement `actions` de la carte, après les pastilles de l'étiquette.
 - Le tag d'affiliation apparaît une fois dans chaque lien, et seulement `amazon.fr` est un hôte de lien produit.
 
 ## Règles réécrites
