@@ -2,12 +2,15 @@ import { RETINOL_NOTE } from './content';
 import { PROMISE } from './products';
 
 describe('RETINOL_NOTE', () => {
-  it('déconseille le rétinol pendant la grossesse et l’allaitement et renvoie vers un professionnel', () => {
-    expect(RETINOL_NOTE).toContain('grossesse');
-    expect(RETINOL_NOTE).toContain('allaitement');
-    expect(RETINOL_NOTE).toMatch(/déconseillé/);
-    expect(RETINOL_NOTE).toContain('médecin');
-    expect(RETINOL_NOTE).toContain('pharmacien');
+  it('déconseille le rétinol pendant la grossesse et l’allaitement, sans nuance', () => {
+    expect(
+      RETINOL_NOTE.startsWith('Le rétinol est déconseillé pendant la grossesse et l’allaitement.'),
+    ).toBe(true);
+    expect(RETINOL_NOTE).not.toMatch(/en cas de doute/i);
+  });
+
+  it('renvoie vers un médecin ou un pharmacien dans une phrase à part', () => {
+    expect(RETINOL_NOTE).toContain('. Demandez conseil à un médecin ou à un pharmacien.');
   });
 
   it('explique l’application le soir, progressive, avec un écran solaire le matin', () => {
@@ -23,10 +26,9 @@ describe('RETINOL_NOTE', () => {
     expect(RETINOL_NOTE).not.toMatch(PROMISE);
   });
 
-  it('suit la typographie française : apostrophe courbe, espace insécable avant « : »', () => {
+  it('suit la typographie française : apostrophe courbe, aucune espace avant la ponctuation haute', () => {
     expect(RETINOL_NOTE).not.toContain("'");
     expect(RETINOL_NOTE).not.toMatch(/ [:;?!]/);
-    expect(RETINOL_NOTE).toMatch(/\u00a0:/);
     expect(RETINOL_NOTE).toContain('’');
   });
 });

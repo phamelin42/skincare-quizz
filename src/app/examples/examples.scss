@@ -47,7 +47,8 @@
   text-wrap: pretty;
   overflow-wrap: anywhere;
 }
-// Sous la liste : une respiration, sans bordure ni couleur d'alerte (l'encart médical est plus bas).
+// Sous la liste : une mise en garde, donc l'encre pleine et non la teinte atténuée de la composition.
 .app-examples__note {
   margin: var(--space-3) 0 0;
+  color: var(--ink);
 }
