@@ -40,9 +40,14 @@
   box-shadow: var(--focus-ring);
 }
 .app-examples__brand,
-.app-examples__inci {
+.app-examples__inci,
+.app-examples__note {
   color: var(--ink-muted);
   font: 500 14px/22px var(--font-text);
   text-wrap: pretty;
   overflow-wrap: anywhere;
+}
+// Sous la liste : une respiration, sans bordure ni couleur d'alerte (l'encart médical est plus bas).
+.app-examples__note {
+  margin: var(--space-3) 0 0;
 }

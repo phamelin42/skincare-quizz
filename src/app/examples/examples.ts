@@ -13,6 +13,8 @@ const INCI_SHOWN = 8;
 })
 export class Examples {
   readonly products = input.required<readonly Product[]>();
+  /** Rappel affiché sous la liste (ex. le rétinol) ; `null` : rien. */
+  readonly note = input<string | null>(null);
 
   protected readonly items = computed(() =>
     this.products().map((product) => ({

@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { PRODUCT_CATALOGUE } from './products';
 import { FIXTURE_CATALOGUE } from './products.fixture';
-import { QUESTIONS } from './questions';
+import { type QuestionId, QUESTIONS } from './questions';
+import { RETINOL_NOTE } from './content';
 import { ANALYSIS_DELAY, ANSWER_DELAY, QuizService } from './quiz.service';
 
 describe('QuizService', () => {
@@ -130,6 +131,78 @@ describe('QuizService', () => {
           card.key === 'serum' ? ['serum-niacinamide'] : [],
         );
       }
+    });
+
+    describe('note du rétinol', () => {
+      /** Réponses par valeur ; les questions non précisées prennent leur dernière option. */
+      function answerBy(values: Partial<Record<QuestionId, string>>): void {
+        quiz.start();
+        for (const question of QUESTIONS) {
+          const wanted = values[question.id];
+          const index =
+            wanted === undefined
+              ? question.options.length - 1
+              : question.options.findIndex((option) => option.value === wanted);
+          quiz.choose(index);
+          vi.advanceTimersByTime(ANSWER_DELAY);
+        }
+        vi.advanceTimersByTime(ANALYSIS_DELAY);
+      }
+
+      function withCatalogue(catalogue: typeof FIXTURE_CATALOGUE): void {
+        TestBed.resetTestingModule();
+        TestBed.configureTestingModule({
+          providers: [{ provide: PRODUCT_CATALOGUE, useValue: catalogue }],
+        });
+        quiz = TestBed.inject(QuizService);
+      }
+
+      const notes = () =>
+        quiz.result()!.products.map((card) => [card.key, card.note] as [string, string | null]);
+
+      it('accompagne la carte du soir quand le profil demande du rétinol et que des exemples existent', () => {
+        withCatalogue(FIXTURE_CATALOGUE);
+        answerBy({ concern: 'wrinkles', reactions: 'never' });
+        const result = quiz.result()!;
+        expect(result.profile.evening).toBe('retinol');
+        const evening = result.products.find((card) => card.key === 'evening')!;
+        expect(evening.examples.map((product) => product.id)).toEqual(['evening-retinol']);
+        expect(evening.note).toBe(RETINOL_NOTE);
+        expect(evening.note).toContain('grossesse');
+        // Aucune autre carte ne porte de note.
+        expect(notes().filter(([key, note]) => key !== 'evening' && note !== null)).toEqual([]);
+      });
+
+      it('n’accompagne pas les autres soins du soir', () => {
+        withCatalogue(FIXTURE_CATALOGUE);
+        const cases: [string, Partial<Record<QuestionId, string>>][] = [
+          ['salicylic', { concern: 'blemishes', reactions: 'never' }],
+          ['azelaic', { concern: 'blemishes', reactions: 'often' }],
+        ];
+        for (const [active, values] of cases) {
+          answerBy(values);
+          const result = quiz.result()!;
+          expect(result.profile.evening).toBe(active);
+          const evening = result.products.find((card) => card.key === 'evening')!;
+          expect(evening.examples.length, active).toBeGreaterThan(0);
+          expect(
+            notes().every(([, note]) => note === null),
+            active,
+          ).toBe(true);
+          quiz.restart();
+        }
+      });
+
+      it('n’apparaît pas quand aucun exemple de rétinol n’est proposé', () => {
+        withCatalogue(FIXTURE_CATALOGUE.filter((product) => product.id !== 'evening-retinol'));
+        answerBy({ concern: 'wrinkles', reactions: 'never' });
+        const evening = quiz.result()!.products.find((card) => card.key === 'evening')!;
+        expect(evening.examples).toEqual([]);
+        expect(evening.note).toBeNull();
+        withCatalogue([]);
+        answerBy({ concern: 'wrinkles', reactions: 'never' });
+        expect(notes().every(([, note]) => note === null)).toBe(true);
+      });
     });
   });
 });
