@@ -118,6 +118,21 @@ export const CHEMICAL_UV_FILTERS: readonly string[] = [
   'Bemotrizinol',
 ];
 
+/**
+ * Les huiles essentielles, sur une entrée INCI déjà normalisée : la mention littérale, ou une
+ * plante aromatique dont l’entrée finit par « Oil ». Le nom de la plante ne suffit pas (un
+ * extrait de lavande n’est pas une huile essentielle) et « Oil » seul non plus : les huiles
+ * végétales (tournesol, jojoba, amande douce) et le squalane ne sont pas concernés. Une liste
+ * fermée de plantes, à compléter avec le catalogue.
+ */
+export const ESSENTIAL_OIL = new RegExp(
+  [
+    'essential oil|huile essentielle',
+    '^(?:lavandula|mentha|rosmarinus|melaleuca|eucalyptus|cymbopogon|pelargonium|cananga|ylang|santalum|juniperus|thymus|salvia sclarea|salvia officinalis|origanum|cinnamomum|syzygium aromaticum|boswellia|rosa damascena|jasminum|chamomilla recutita|matricaria|pogostemon|vetiveria|cedrus|litsea|abies)\\b.*\\boil$',
+    '^citrus\\b.*\\b(?:peel|fruit|leaf|flower)\\s+oil$',
+  ].join('|'),
+);
+
 const CHEMICAL_UV = new Set(CHEMICAL_UV_FILTERS.map(normalise));
 
 function normalised(inci: readonly string[]): Set<string> {
@@ -174,7 +189,7 @@ export function examplesFor(
       const inci = normalised(product.inci);
       if (profile.reactive) {
         const scented = product.inci.some((name) => /^(parfum|fragrance)/i.test(name.trim()));
-        if (scented) return false;
+        if (scented || [...inci].some((name) => ESSENTIAL_OIL.test(name))) return false;
         if (card.key === 'sunscreen') {
           const mineral = inci.has('zinc oxide') || inci.has('titanium dioxide');
           // Minéral seulement : un filtre chimique en plus (écran hybride) écarte le produit.

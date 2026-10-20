@@ -7,6 +7,7 @@ import {
   CATALOGUE,
   catalogueDefects,
   CHEMICAL_UV_FILTERS,
+  ESSENTIAL_OIL,
   EXAMPLES_NOTE,
   examplesFor,
   PRODUCT_CATALOGUE,
@@ -485,6 +486,113 @@ describe('examplesFor', () => {
     it('exige toujours un filtre minéral pour une peau réactive', () => {
       const none = altered('sunscreen-50-mineral', { inci: ['Aqua', 'Glycerin'] });
       expect(examplesFor(cardOf(reactive, 'sunscreen'), reactive, [none])).toEqual([]);
+    });
+  });
+
+  describe('huiles essentielles', () => {
+    const reactive = profileFor({ ...OILY, reactions: 'often', concern: 'blemishes' });
+    const calm = profileFor({ ...OILY, concern: 'blemishes' });
+    const oil = 'Lavandula Angustifolia (Lavender) Oil';
+
+    it('écarte pour une peau réactive un produit à l’huile essentielle, sur chaque carte', () => {
+      for (const key of ['serum', 'evening', 'cleanser', 'moisturiser', 'sunscreen']) {
+        for (const profile of [reactive, calm]) {
+          const card = cardOf(profile, key);
+          const [plain] = examplesFor(card, profile, FIXTURE_CATALOGUE);
+          expect(plain, `${key} : un produit de base`).toBeDefined();
+          const scented = { ...plain, id: `${plain.id}-huile`, inci: [...plain.inci, oil] };
+          const shown = ids(examplesFor(card, profile, [scented]));
+          // Contrôle négatif : sans la réaction, le même produit reste proposé.
+          expect(shown, `${key}, ${profile.reactive ? 'réactive' : 'calme'}`).toEqual(
+            profile.reactive ? [] : [scented.id],
+          );
+        }
+      }
+    });
+
+    it('garde les produits sans huile essentielle pour une peau réactive', () => {
+      const serum = examplesFor(cardOf(reactive, 'serum'), reactive, FIXTURE_CATALOGUE);
+      expect(ids(serum)).toContain('serum-niacinamide');
+      expect(ids(serum)).not.toContain('serum-niacinamide-huile-essentielle');
+      const calmSerum = examplesFor(cardOf(calm, 'serum'), calm, FIXTURE_CATALOGUE);
+      expect(ids(calmSerum)).toContain('serum-niacinamide-huile-essentielle');
+    });
+
+    it('écarte l’huile essentielle même suivie d’une précision ou écrite en majuscules', () => {
+      const card = cardOf(reactive, 'serum');
+      for (const entry of [`${oil} [bio]`, oil.toUpperCase(), 'Huile Essentielle de lavande']) {
+        const scented = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide', entry] });
+        expect(examplesFor(card, reactive, [scented]), entry).toEqual([]);
+      }
+    });
+
+    it('écarte aussi le parfum, qui reste exclu', () => {
+      const card = cardOf(reactive, 'serum');
+      const parfum = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide', 'Parfum'] });
+      expect(examplesFor(card, reactive, [parfum])).toEqual([]);
+    });
+
+    it('reconnaît les huiles essentielles de plantes aromatiques', () => {
+      const essential = [
+        'Lavandula Angustifolia (Lavender) Oil',
+        'Lavandula Hybrida Oil',
+        'Mentha Piperita (Peppermint) Oil',
+        'Rosmarinus Officinalis (Rosemary) Leaf Oil',
+        'Melaleuca Alternifolia (Tea Tree) Leaf Oil',
+        'Eucalyptus Globulus Leaf Oil',
+        'Cymbopogon Schoenanthus Oil',
+        'Pelargonium Graveolens Flower Oil',
+        'Cananga Odorata Flower Oil',
+        'Ylang Ylang Oil',
+        'Santalum Album (Sandalwood) Oil',
+        'Juniperus Communis Fruit Oil',
+        'Thymus Vulgaris (Thyme) Oil',
+        'Salvia Sclarea (Clary) Oil',
+        'Origanum Vulgare Oil',
+        'Cinnamomum Zeylanicum Bark Oil',
+        'Syzygium Aromaticum (Clove) Flower Oil',
+        'Boswellia Carterii Oil',
+        'Citrus Aurantium Dulcis (Orange) Peel Oil',
+        'Citrus Limon (Lemon) Peel Oil',
+        'Citrus Aurantium Amara (Bitter Orange) Flower Oil',
+        'Rosa Damascena Flower Oil',
+        'Jasminum Officinale (Jasmine) Oil',
+        'Chamomilla Recutita (Matricaria) Flower Oil',
+        'Matricaria Chamomilla Flower Oil',
+        'Essential Oil',
+        'Lavender Essential Oil',
+        'Huile essentielle de lavande',
+      ];
+      for (const entry of essential) {
+        expect(ESSENTIAL_OIL.test(entry.toLowerCase()), entry).toBe(true);
+      }
+    });
+
+    it('ne prend pas pour une huile essentielle les huiles végétales ni les autres ingrédients', () => {
+      const carrier = [
+        'Helianthus Annuus (Sunflower) Seed Oil',
+        'Simmondsia Chinensis (Jojoba) Seed Oil',
+        'Prunus Amygdalus Dulcis (Sweet Almond) Oil',
+        'Squalane',
+        'Caprylic/Capric Triglyceride',
+        'Rosa Canina Fruit Oil',
+        'Butyrospermum Parkii (Shea) Butter',
+        'Lavandula Angustifolia (Lavender) Flower Extract',
+        'Mentha Piperita (Peppermint) Leaf Extract',
+        'Citrus Grandis (Grapefruit) Seed Extract',
+        'Salvia Hispanica Seed Oil',
+        'Mineral Oil',
+        'Glycerin',
+        'Aqua',
+      ];
+      for (const entry of carrier) {
+        expect(ESSENTIAL_OIL.test(entry.toLowerCase()), entry).toBe(false);
+      }
+      const card = cardOf(reactive, 'serum');
+      for (const entry of carrier) {
+        const plain = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide', entry] });
+        expect(examplesFor(card, reactive, [plain]), entry).toEqual([plain]);
+      }
     });
   });
 

@@ -34,6 +34,12 @@ export const FIXTURE_CATALOGUE: readonly Product[] = [
     active: 'niacinamide',
     inci: ['Aqua', 'Niacinamide', 'PARFUM (FRAGRANCE)'],
   }),
+  // Huile essentielle (lavande) : écartée pour une peau réactive, comme le parfum.
+  product('serum-niacinamide-huile-essentielle', {
+    card: 'serum',
+    active: 'niacinamide',
+    inci: ['Aqua', 'Niacinamide', 'Lavandula Angustifolia (Lavender) Oil'],
+  }),
   product('serum-vitaminC', {
     card: 'serum',
     active: 'vitaminC',

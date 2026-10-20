@@ -3,6 +3,7 @@ import {
   CATALOGUE,
   catalogueDefects,
   CHEMICAL_UV_FILTERS,
+  ESSENTIAL_OIL,
   examplesFor,
   type Product,
 } from './products';
@@ -202,6 +203,8 @@ describe('exemples de produits', () => {
           };
           if (product.card !== card.key) fail('mauvaise carte');
           if (profile.reactive && /parfum|fragrance/.test(inci)) fail('parfum pour peau réactive');
+          const oil = product.inci.find((name) => ESSENTIAL_OIL.test(name.trim().toLowerCase()));
+          if (profile.reactive && oil) fail(`huile essentielle (${oil}) pour peau réactive`);
           if (card.key === 'serum' || card.key === 'evening') {
             const active = card.key === 'serum' ? profile.serum : profile.evening;
             if (product.active !== active) fail(`actif ${product.active}, profil ${active}`);
