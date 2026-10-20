@@ -57,6 +57,15 @@ const CARDS: readonly string[] = ['serum', 'evening', 'cleanser', 'moisturiser',
  */
 const ACTIVES: Readonly<Record<string, object>> = { serum: SERUM_NAMES, evening: EVENING_TITLES };
 
+/**
+ * Les formulations qui promettent un résultat, en français et en anglais : le contenu du site
+ * n’en fait aucune, et un nom de produit qui en porte une ne doit pas s’afficher tel quel.
+ * Volontairement large (sans bornes de mot) : un faux positif se corrige en renommant, un
+ * faux négatif publie une promesse.
+ */
+export const PROMISE =
+  /guéri|soign|anti-?(rides?|taches?|âge|age|imperfections?|acné|cernes?)|efface|élimin|miracle|garanti|prévient|répare|rajeun|éclaircit|détox|bienfait|clinically proven|cliniquement prouvé/i;
+
 const QUALIFIER = /\s*(\([^)]*\)|\[[^\]]*\])$/;
 
 /**
@@ -88,6 +97,8 @@ export function catalogueDefects(catalogue: readonly Product[]): string[] {
     if (!ASIN.test(product.asin)) defect(`ASIN invalide (${product.asin})`);
     if (!product.sourceUrl.startsWith('https://')) defect('source absente ou hors https://');
     if (!DATE.test(product.validated)) defect(`date de validation invalide (${product.validated})`);
+    const texts = [product.name, product.brand, ...product.inci];
+    if (texts.some((text) => PROMISE.test(text))) defect('promesse de résultat dans les textes');
     if (!CARDS.includes(product.card)) defect(`carte inconnue (${product.card})`);
     if (product.card === 'sunscreen' && product.spf === null) defect('SPF manquant');
     const allowed = ACTIVES[product.card];

@@ -9,6 +9,7 @@ import {
   EXAMPLES_NOTE,
   examplesFor,
   PRODUCT_CATALOGUE,
+  PROMISE,
   type Product,
 } from './products';
 import { FIXTURE_CATALOGUE } from './products.fixture';
@@ -176,6 +177,51 @@ describe('catalogueDefects', () => {
   it('accepte un INCI suivi d’une précision entre parenthèses ou crochets', () => {
     const qualified = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide (vitamin B3)'] });
     expect(catalogueDefects([qualified])).toEqual([]);
+  });
+
+  it('ne trouve aucune promesse de résultat dans les mentions affichées', () => {
+    expect(AFFILIATE_NOTICE).not.toMatch(PROMISE);
+    expect(EXAMPLES_NOTE).not.toMatch(PROMISE);
+  });
+
+  it('signale une promesse de résultat dans le nom, la marque ou l’INCI', () => {
+    const fields: [string, Partial<Product>][] = [
+      ['le nom', { name: 'Sérum Anti-Taches' }],
+      ['la marque', { brand: 'Anti-Taches' }],
+      ['une entrée INCI', { inci: ['Aqua', 'Niacinamide', 'Anti-Taches'] }],
+    ];
+    for (const [label, change] of fields) {
+      const defects = catalogueDefects([altered('serum-niacinamide', change)]);
+      expect(defects, label).toHaveLength(1);
+      expect(defects[0], label).toContain('promesse de résultat');
+    }
+  });
+
+  it('reconnaît chaque terme de promesse, quelle que soit la casse', () => {
+    const terms = [
+      'guérit',
+      'SOIGNE',
+      'anti-rides',
+      'antirides',
+      'anti-âge',
+      'anti-imperfections',
+      'efface les taches',
+      'élimine',
+      'miracle',
+      'garanti',
+      'prévient',
+      'répare',
+      'rajeunit',
+      'éclaircit',
+      'détox',
+      'bienfaits',
+      'Clinically Proven',
+      'cliniquement prouvé',
+    ];
+    for (const term of terms) {
+      const defects = catalogueDefects([altered('serum-niacinamide', { name: `Sérum ${term}` })]);
+      expect(defects, term).toHaveLength(1);
+    }
   });
 
   it('signale un id en double', () => {
