@@ -1,4 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { PRODUCT_CATALOGUE } from './products';
+import { FIXTURE_CATALOGUE } from './products.fixture';
 import { QUESTIONS } from './questions';
 import { ANALYSIS_DELAY, ANSWER_DELAY, QuizService } from './quiz.service';
 
@@ -91,5 +93,43 @@ describe('QuizService', () => {
     quiz.restart();
     vi.advanceTimersByTime(ANALYSIS_DELAY);
     expect(quiz.screen()).toBe('home');
+  });
+
+  function showResult(): NonNullable<ReturnType<QuizService['result']>> {
+    quiz.start();
+    answerAll();
+    vi.advanceTimersByTime(ANALYSIS_DELAY);
+    return quiz.result()!;
+  }
+
+  it('n’associe aucun exemple tant que le catalogue est vide', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [{ provide: PRODUCT_CATALOGUE, useValue: [] }] });
+    quiz = TestBed.inject(QuizService);
+    const { products } = showResult();
+    expect(products.length).toBeGreaterThan(0);
+    expect(products.map((card) => card.examples)).toEqual(products.map(() => []));
+  });
+
+  describe('avec un catalogue', () => {
+    const niacinamide = FIXTURE_CATALOGUE.filter((product) => product.id === 'serum-niacinamide');
+
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [{ provide: PRODUCT_CATALOGUE, useValue: niacinamide }],
+      });
+      quiz = TestBed.inject(QuizService);
+    });
+
+    it('place l’exemple sous la carte du sérum, et nulle part ailleurs', () => {
+      const result = showResult();
+      expect(result.profile.serum).toBe('niacinamide');
+      for (const card of result.products) {
+        expect(card.examples.map((product) => product.id)).toEqual(
+          card.key === 'serum' ? ['serum-niacinamide'] : [],
+        );
+      }
+    });
   });
 });

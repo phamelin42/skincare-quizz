@@ -1,0 +1,12 @@
+<p class="app-label">Exemples sur Amazon</p>
+<ul class="app-examples__list">
+  @for (item of items(); track item.id) {
+    <li>
+      <a [href]="item.href" target="_blank" rel="sponsored noopener noreferrer">
+        {{ item.name }}<span class="fd-sr"> (nouvel onglet)</span>
+      </a>
+      <span class="app-examples__brand">{{ item.brand }}</span>
+      <span class="app-examples__inci">Composition (début de la liste)&nbsp;: {{ item.inci }}</span>
+    </li>
+  }
+</ul>

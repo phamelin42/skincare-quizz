@@ -1,0 +1,48 @@
+.app-examples {
+  display: block;
+  // Dans l'emplacement `actions` (une rangée qui passe à la ligne) : sous les pastilles, sur toute la largeur.
+  flex: 1 0 100%;
+}
+.app-examples__list {
+  display: grid;
+  // Une colonne qui ne dépasse pas la carte : un nom de produit sans espace passe à la ligne plutôt que
+  // de l'élargir, et la carte rogne son débordement.
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.app-examples__list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+}
+// Le soulignement reste : la couleur seule ne distingue pas un lien d’un texte.
+.app-examples a {
+  display: block;
+  align-self: start;
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  padding-block: var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--link);
+  font: 700 14px/20px var(--font-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+.app-examples a:focus-visible {
+  // Le contour transparent reste visible en mode contraste forcé, où l'ombre disparaît.
+  outline: 2px solid transparent;
+  box-shadow: var(--focus-ring);
+}
+.app-examples__brand,
+.app-examples__inci {
+  color: var(--ink-muted);
+  font: 500 14px/22px var(--font-text);
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}

@@ -1,3 +1,6 @@
+import { INGREDIENTS } from './content';
+import { CATALOGUE, catalogueDefects, examplesFor, type Product } from './products';
+import { FIXTURE_CATALOGUE } from './products.fixture';
 import { analyse, type Answers, ingredients, products, routine } from './profile';
 import { type QuestionId, QUESTIONS } from './questions';
 
@@ -155,5 +158,86 @@ describe('produits et routine', () => {
     }
     expect(defects).toEqual([]);
     expect(count).toBe(QUESTIONS.reduce((total, q) => total * q.options.length, 1));
+  }, 60_000);
+});
+
+describe('exemples de produits', () => {
+  it('garde un catalogue réel sans défaut', () => {
+    expect(catalogueDefects(CATALOGUE)).toEqual([]);
+  });
+
+  it('n’affiche que des exemples cohérents avec le profil, pour toutes les réponses', () => {
+    const defects: string[] = [];
+    const seen = new Set<string>();
+    // Ce que le catalogue d’essai peut couvrir : sans cela, un filtre qui ne renvoie rien passerait.
+    const reachable = new Set<string>();
+    const shown = new Set<string>();
+    const mineral = ['zinc oxide', 'titanium dioxide'];
+    for (const combination of everyAnswers()) {
+      const profile = analyse(combination);
+      const signature = JSON.stringify(profile);
+      if (seen.has(signature)) continue;
+      seen.add(signature);
+      for (const card of products(profile)) {
+        const coverage = [card.key, profile.reactive ? 'reactive' : 'calm'];
+        if (card.key === 'serum') coverage.push(profile.serum);
+        if (card.key === 'evening') coverage.push(profile.evening!);
+        if (card.key === 'sunscreen') coverage.push(String(profile.spf));
+        const examples = examplesFor(card, profile, FIXTURE_CATALOGUE);
+        if (FIXTURE_CATALOGUE.some((product) => product.card === card.key)) {
+          reachable.add(coverage.join(':'));
+        }
+        if (examples.length > 3 && defects.length < 5) defects.push(`${card.key} : plus de 3`);
+        for (const product of examples) {
+          shown.add(coverage.join(':'));
+          const inci = product.inci.join('|').toLowerCase();
+          const fail = (message: string) => {
+            if (defects.length < 5) defects.push(`${product.id} sur ${card.key} : ${message}`);
+          };
+          if (product.card !== card.key) fail('mauvaise carte');
+          if (profile.reactive && /parfum|fragrance/.test(inci)) fail('parfum pour peau réactive');
+          if (card.key === 'serum' || card.key === 'evening') {
+            const active = card.key === 'serum' ? profile.serum : profile.evening;
+            if (product.active !== active) fail(`actif ${product.active}, profil ${active}`);
+            const known = INGREDIENTS[active!].inci.map((name) => name.toLowerCase());
+            if (!known.some((name) => inci.includes(name))) fail('aucun INCI de l’actif');
+          }
+          if (card.key === 'sunscreen') {
+            if (product.spf !== profile.spf) fail(`SPF ${product.spf}, profil ${profile.spf}`);
+            if (profile.reactive && !mineral.some((name) => inci.includes(name))) {
+              fail('pas de filtre minéral pour peau réactive');
+            }
+          }
+          if (card.key === 'cleanser' || card.key === 'moisturiser') {
+            if (!card.labels.some((label) => inci.includes(label.toLowerCase()))) {
+              fail('aucun repère de la carte');
+            }
+          }
+        }
+      }
+    }
+    expect(defects).toEqual([]);
+    expect([...reachable].filter((key) => !shown.has(key))).toEqual([]);
+    expect(seen.size).toBeGreaterThan(1);
+  }, 60_000);
+
+  it('n’affiche jamais un hydratant sans repère de la carte, même au catalogue', () => {
+    const bare: Product = {
+      ...FIXTURE_CATALOGUE.find((product) => product.card === 'moisturiser')!,
+      id: 'moisturiser-bare',
+      inci: ['Aqua', 'Dimethicone'],
+    };
+    const seen = new Set<string>();
+    const shown: string[] = [];
+    for (const combination of everyAnswers()) {
+      const profile = analyse(combination);
+      const signature = JSON.stringify(profile);
+      if (seen.has(signature)) continue;
+      seen.add(signature);
+      for (const card of products(profile)) {
+        if (examplesFor(card, profile, [bare]).length > 0) shown.push(signature);
+      }
+    }
+    expect(shown).toEqual([]);
   }, 60_000);
 });
