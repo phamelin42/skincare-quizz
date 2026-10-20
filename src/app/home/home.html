@@ -1,0 +1,19 @@
+<div class="app-home__text">
+  <h1 #heading tabindex="-1">Votre routine de soin, en 10&nbsp;questions</h1>
+  <p class="app-lead">
+    Répondez en un geste à quelques questions sur votre peau et vos habitudes. Vous obtenez une
+    routine matin et soir, les ingrédients à privilégier et les types de produits qui correspondent.
+  </p>
+  <ul class="app-facts">
+    <li><fd-badge tone="sakura" soft>10 questions</fd-badge></li>
+    <li><fd-badge tone="asagi" soft>Environ 2 minutes</fd-badge></li>
+    <li><fd-badge tone="tokiwa" soft>Rien n’est enregistré</fd-badge></li>
+  </ul>
+  <button fdButton variant="primary" size="lg" type="button" (click)="quiz.start()">
+    Commencer
+  </button>
+</div>
+<div fdCard class="app-fuda" sky="sakura" emblem="sakura" aria-hidden="true">
+  <span slot="title">Votre routine sur mesure</span>
+  <span slot="meta">Matin · Soir · Produits recommandés</span>
+</div>

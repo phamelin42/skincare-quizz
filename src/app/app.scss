@@ -1,37 +1,69 @@
 .app {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-8);
   min-height: 100dvh;
-  max-width: 68rem;
-  margin: 0 auto;
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-4) var(--space-8);
+}
+.app-skip {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: var(--layer-sticky);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--link);
+  font: 700 14px/20px var(--font-text);
+  transform: translateY(-200%);
+}
+.app-skip:focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  transform: none;
+}
+.app-header,
+.app-footer {
+  width: 100%;
+  max-width: 960px;
+  margin-inline: auto;
 }
 .app-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3) var(--space-6);
+  gap: var(--space-3) var(--space-4);
+  min-height: 44px;
 }
-.app-title {
-  margin: 0;
-  font: 400 24px/30px var(--font-display);
+.app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
   color: var(--ink);
+  font: 400 18px/24px var(--font-display);
+  white-space: nowrap;
 }
 .app-main {
-  display: flex;
+  display: grid;
   flex: 1;
-  flex-direction: column;
-  gap: var(--space-3);
+  align-content: start;
+  min-width: 0;
 }
-.app-lead,
-.app-soon {
-  margin: 0;
-  color: var(--ink);
+.app-main:focus,
+.app-main h1:focus {
+  // Focus posé par le code pour annoncer un nouvel écran : ni l'un ni l'autre ne se tabule.
+  outline: none;
 }
-@media (min-width: 48rem) {
-  .app {
-    padding: var(--space-8);
-  }
+.app-main h1 {
+  text-wrap: balance;
+}
+.app-main > * {
+  min-width: 0;
+  animation: fd-uchi var(--duration-base) var(--ease-kaze) both;
+}
+.app-footer {
+  color: var(--ink-muted);
+  font: 500 12px/18px var(--font-text);
+  text-wrap: pretty;
 }

@@ -4,26 +4,24 @@ Site Angular 22 construit avec la bibliothèque **Fuda** (`design-system-fuda`).
 
 ## Le projet
 
-Quiz éducatif sur les soins de la peau (types de peau, ingrédients actifs, routines, protection solaire), jumeau de flag-quizz et capital-quizz : même pile, même esprit (une question, une réponse, puis une explication courte).
-
-**Le jeu n'est pas encore défini.** Avant de coder, proposer à Philippe les règles (réponse libre ou choix multiple, nombre de questions, score et série) et un premier jeu de questions à valider.
+Questionnaire de routine de soin, d'après la maquette validée par Philippe (https://claude.ai/artifact/7tXzRcTiFjYA4GBiYTryAC) : 10 questions à choix unique (peau, habitudes, temps disponible), puis un écran de résultat avec le type de peau évoqué, les ingrédients à repérer, une routine matin et soir et des types de produits. Pas de score : aucune réponse n'est juste ou fausse.
 
 - Le contenu est rédigé à la main et vérifié : un fait douteux ne vaut rien. Sources fiables uniquement (dermatologie, étiquetage, organismes de santé).
-- Aucun conseil médical, aucun diagnostic, aucune promesse de résultat ; ne jamais recommander une marque.
-- Rien d'autre ne donne la réponse avant l'envoi (texte alternatif, explication, aide).
+- Aucun conseil médical, aucun diagnostic (« vos réponses évoquent… », jamais « vous avez… »), aucune promesse de résultat ; ne jamais recommander une marque. L'encart « Ceci n'est pas un avis médical » reste sur le résultat.
+- Rien n'est enregistré : les réponses vivent en mémoire, dans `QuizService`.
 
 ## Commandes
 
 Node ≥ 22.22.3 (exigé par Angular 22 ; `.nvmrc` : 24). Site : skincare-quizz.phamelin.fr.
 
-| Commande                             | Rôle                                                              |
-| ------------------------------------ | ----------------------------------------------------------------- |
-| `npm start`                          | Serveur de développement                                          |
-| `npm test`                           | Tests unitaires (Vitest via `ng test`)                            |
-| `npm run lint` / `npm run typecheck` | ESLint (angular-eslint) / tsc sur l'appli et les specs            |
-| `npm run build`                      | Build de production (`dist/skincare-quizz/browser`)                      |
-| `npm run e2e`                        | Playwright sur ce build : parcours, clavier, axe Jour/Nuit        |
-| `npm run format` / `format:check`    | Prettier                                                          |
+| Commande                             | Rôle                                                       |
+| ------------------------------------ | ---------------------------------------------------------- |
+| `npm start`                          | Serveur de développement                                   |
+| `npm test`                           | Tests unitaires (Vitest via `ng test`)                     |
+| `npm run lint` / `npm run typecheck` | ESLint (angular-eslint) / tsc sur l'appli et les specs     |
+| `npm run build`                      | Build de production (`dist/skincare-quizz/browser`)        |
+| `npm run e2e`                        | Playwright sur ce build : parcours, clavier, axe Jour/Nuit |
+| `npm run format` / `format:check`    | Prettier                                                   |
 
 Une tâche est terminée quand `lint`, `typecheck`, `test` et `build` sont verts, et `e2e` si l'interface, le clavier ou le focus changent.
 
@@ -37,7 +35,8 @@ Une tâche est terminée quand `lint`, `typecheck`, `test` et `build` sont verts
 
 ## Structure
 
-- `src/app/` : un dossier par composant avec `.ts`, `.html`, `.scss` ; `app` assemble la page. Les données et la logique métier vont dans des services à signaux, testés à part.
+- `src/app/` : un dossier par composant avec `.ts`, `.html`, `.scss` ; `app` assemble la page et affiche l'écran du moment (`home`, `question`, `analysis`, `result`). Les données et la logique métier vont dans des services à signaux, testés à part.
+- `src/app/routine/` : questions (`questions.ts`), textes (`content.ts`), calcul du profil, des produits et de la routine (`profile.ts`, fonctions pures), parcours (`quiz.service.ts`). `profile.spec.ts` parcourt toutes les combinaisons de réponses.
 - `e2e/` : Playwright (build de production servi par `http-server` sur le port 4300).
 - `public/` : fichiers servis tels quels (icônes d'onglet).
 
@@ -59,7 +58,7 @@ WCAG 2.2 AA : focus visible, cibles de 44 px, libellé de champ visible, texte �
 
 ## Obligatoire sur tout site
 
-- **Une icône d'onglet** (`favicon`) : `public/favicon.svg`, `public/favicon.ico` (16, 32 et 48 px) et `public/apple-touch-icon.png` (180 px), déclarés dans `src/index.html`. Un site sans icône d'onglet n'est pas terminé : l'icône par défaut d'Angular n'est pas acceptable. `e2e/accueil.spec.ts` vérifie que les fichiers répondent. Les icônes présentes sont provisoires (initiales sur fond Fuda) : à remplacer par un vrai pictogramme.
+- **Une icône d'onglet** (`favicon`) : `public/favicon.svg`, `public/favicon.ico` (16, 32 et 48 px) et `public/apple-touch-icon.png` (180 px), déclarés dans `src/index.html`. Un site sans icône d'onglet n'est pas terminé : l'icône par défaut d'Angular n'est pas acceptable. `e2e/accueil.spec.ts` vérifie que les fichiers répondent. Le pictogramme est l'emblème sakura de Fuda (couleurs du thème Jour) ; `favicon.ico` et `apple-touch-icon.png` sont rendus depuis `favicon.svg` par Chromium.
 - **Mesure d'audience** : Umami (`analytics.patternreader.com`), un site enregistré par application. Ne jamais recopier le `data-website-id` d'un autre projet ; l'ajouter à `src/index.html` seulement une fois le site enregistré dans Umami.
 
 ## Dépendance Fuda
@@ -69,7 +68,3 @@ Installée depuis GitHub à un commit précis de `main` (`"fuda": "github:phamel
 ## Versions
 
 Angular 22 et ses outils sont à jour au moment de la création. TypeScript reste en `~6.0` : Angular 22 exige `>=6.0 <6.1`, la série 7 n'est pas encore compatible. Avant de monter une version majeure, vérifier la compatibilité de `@angular/build` et de `typescript-eslint`.
-
-## Premier démarrage
-
-Pas encore de `package-lock.json` : lancer `npm install`, committer le lock, puis passer `.github/workflows/ci.yml` et `vercel.json` de `npm install` à `npm ci`.

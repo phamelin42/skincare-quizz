@@ -1,0 +1,63 @@
+.app-home {
+  display: grid;
+  gap: var(--space-12);
+  align-items: center;
+  width: 100%;
+  max-width: 960px;
+  margin-inline: auto;
+  padding-top: var(--space-6);
+}
+.app-home__text {
+  display: grid;
+  gap: var(--space-5);
+  justify-items: start;
+  min-width: 0;
+}
+.app-home h1 {
+  margin: 0;
+  font: 400 36px/42px var(--font-display);
+  letter-spacing: -0.005em;
+}
+.app-lead {
+  max-width: 56ch;
+  margin: 0;
+  font: 500 18px/30px var(--font-text);
+  text-wrap: pretty;
+}
+.app-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.app-home .app-fuda {
+  justify-self: center;
+  width: 100%;
+  max-width: 300px;
+  box-shadow: var(--shadow-lift);
+  transform: rotate(-1.5deg);
+}
+.app-fuda .fd-card__sora {
+  height: 200px;
+}
+.app-fuda .fd-card__sora .fd-mon {
+  top: 24px;
+  right: auto;
+  left: 50%;
+  width: 124px;
+  height: 124px;
+  margin-left: -62px;
+}
+@media (min-width: 800px) {
+  .app-home {
+    grid-template-columns: 1fr 300px;
+    padding-top: var(--space-12);
+  }
+  .app-home h1 {
+    font-size: 48px;
+    line-height: 52px;
+    letter-spacing: -0.01em;
+  }
+}

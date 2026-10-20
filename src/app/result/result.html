@@ -1,0 +1,121 @@
+@if (view(); as v) {
+  <article fdCard class="app-profile" [sky]="v.skin.sky" [emblem]="v.skin.emblem">
+    <h1 #heading tabindex="-1">
+      Vos réponses évoquent une peau {{ v.skin.phrase
+      }}{{ v.profile.reactive ? ', qui réagit facilement' : '' }}
+    </h1>
+    <p>{{ v.skin.text }}</p>
+    @if (v.profile.reactive) {
+      <p>
+        Comme elle réagit facilement, les soins proposés sont sans parfum et les actifs
+        s’introduisent un par un.
+      </p>
+    }
+    <div class="app-tags">
+      <fd-badge tone="sakura" soft>Peau {{ v.skin.label }}</fd-badge>
+      @if (v.profile.reactive) {
+        <fd-badge tone="fuji" soft>Réagit facilement</fd-badge>
+      }
+      @for (concern of v.concerns; track concern) {
+        <fd-badge tone="asagi" soft>{{ concern }}</fd-badge>
+      }
+    </div>
+  </article>
+
+  <section class="app-section" aria-labelledby="h-ingredients">
+    <header>
+      <h2 id="h-ingredients">Les ingrédients à privilégier</h2>
+      <p>À repérer sur l’étiquette, dans la liste d’ingrédients (INCI).</p>
+    </header>
+    <div class="app-grid">
+      @for (ingredient of v.ingredients; track ingredient.key) {
+        <article fdCard>
+          <span slot="title">{{ ingredient.name }}</span>
+          <span slot="meta">{{ ingredient.inci.join(', ') }}</span>
+          {{ ingredient.why }}
+        </article>
+      }
+    </div>
+  </section>
+
+  <section class="app-section" aria-labelledby="h-routine">
+    <header>
+      <h2 id="h-routine">Votre routine</h2>
+      <p>Pensée pour {{ v.minutes }} par jour.</p>
+    </header>
+    <div class="app-grid app-grid--wide">
+      <article fdCard class="app-routine" sky="yamabuki" emblem="kiku">
+        <span slot="title">Matin</span>
+        <span slot="meta">{{ v.routine.morning.length }} étapes</span>
+        <ol class="app-steps">
+          @for (step of v.routine.morning; track step.title) {
+            <li>
+              <div>
+                <strong>{{ step.title }}</strong>
+                <span>{{ step.detail }}</span>
+              </div>
+              <span class="app-steps__time">{{ step.duration }}</span>
+            </li>
+          }
+        </ol>
+      </article>
+      <article fdCard class="app-routine" sky="kon" emblem="usagi">
+        <span slot="title">Soir</span>
+        <span slot="meta">{{ v.routine.evening.length }} étapes</span>
+        <ol class="app-steps">
+          @for (step of v.routine.evening; track step.title) {
+            <li>
+              <div>
+                <strong>{{ step.title }}</strong>
+                <span>{{ step.detail }}</span>
+              </div>
+              <span class="app-steps__time">{{ step.duration }}</span>
+            </li>
+          }
+        </ol>
+      </article>
+    </div>
+    <p class="app-note">{{ v.advice }}</p>
+  </section>
+
+  <section class="app-section" aria-labelledby="h-products">
+    <header>
+      <h2 id="h-products">Les produits qui correspondent</h2>
+      <p>
+        Des types de produits, sans marque. Comparez les listes d’ingrédients de ceux que vous
+        trouvez en magasin.
+      </p>
+    </header>
+    <div class="app-grid">
+      @for (product of v.products; track product.key) {
+        <article fdCard [sky]="product.sky" [emblem]="product.emblem">
+          <fd-badge slot="badge" class="app-when">{{ product.when }}</fd-badge>
+          <span slot="title">{{ product.title }}</span>
+          <span slot="meta">{{ product.texture }}</span>
+          {{ product.text }}
+          <p class="app-label">À chercher sur l’étiquette</p>
+          <ul slot="actions" class="app-labels">
+            @for (label of product.labels; track label) {
+              <li>
+                <fd-badge>{{ label }}</fd-badge>
+              </li>
+            }
+          </ul>
+        </article>
+      }
+    </div>
+  </section>
+
+  <fd-alert tone="info" title="Ceci n’est pas un avis médical">
+    Testez chaque nouveau produit sur une petite zone, et introduisez un seul actif à la fois. Si
+    des rougeurs, de l’acné importante ou des irritations persistent, parlez-en à un médecin ou à un
+    dermatologue. Le rétinol est déconseillé pendant la grossesse.
+  </fd-alert>
+
+  <div class="app-actions">
+    <button fdButton variant="primary" size="lg" type="button" (click)="quiz.restart()">
+      Recommencer
+    </button>
+    <button fdButton size="lg" type="button" (click)="quiz.edit()">Modifier mes réponses</button>
+  </div>
+}

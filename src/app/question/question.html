@@ -1,0 +1,34 @@
+<div class="app-quiz__top">
+  @if (quiz.index() > 0) {
+    <button fdButton variant="ghost" type="button" class="app-back" (click)="quiz.back()">
+      <svg fdIcon="chevron-right"></svg>
+      Précédent
+    </button>
+  }
+  <fd-progress
+    [value]="quiz.progress()"
+    [label]="'Question ' + (quiz.index() + 1) + ' sur ' + quiz.questions.length"
+  />
+</div>
+<div class="app-q">
+  <h1 #heading tabindex="-1">{{ quiz.question().text }}</h1>
+  @if (quiz.question().hint) {
+    <p>{{ quiz.question().hint }}</p>
+  }
+</div>
+<ul class="app-answers">
+  @for (option of quiz.question().options; track option.value; let k = $index) {
+    <li>
+      <button
+        fdButton
+        type="button"
+        [attr.aria-pressed]="quiz.selected() === k"
+        (click)="quiz.choose(k)"
+      >
+        <span class="app-key" aria-hidden="true">{{ k + 1 }}</span>
+        <span class="app-answers__label">{{ option.label }}</span>
+        <svg [fdIcon]="quiz.selected() === k ? 'check' : 'chevron-right'"></svg>
+      </button>
+    </li>
+  }
+</ul>

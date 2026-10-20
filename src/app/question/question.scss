@@ -1,0 +1,92 @@
+.app-quiz {
+  display: grid;
+  gap: var(--space-8);
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+}
+.app-quiz__top {
+  display: grid;
+  gap: var(--space-3);
+}
+.app-quiz .app-back {
+  justify-self: start;
+  margin-left: calc(var(--space-4) * -1);
+}
+.app-quiz .app-back .fd-icon {
+  margin-right: -2px;
+  margin-left: 0;
+  transform: rotate(180deg);
+}
+.app-q {
+  display: grid;
+  gap: var(--space-2);
+}
+.app-q h1 {
+  margin: 0;
+  font: 400 24px/32px var(--font-display);
+}
+.app-q p {
+  margin: 0;
+  color: var(--ink-muted);
+}
+.app-answers {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.app-answers .fd-button {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+  height: auto;
+  min-height: 56px;
+  padding: var(--space-3) var(--space-5);
+  font: 700 16px/24px var(--font-text);
+  text-align: left;
+  white-space: normal;
+}
+.app-answers .fd-button .fd-icon {
+  margin: 0;
+}
+.app-answers .fd-button[aria-pressed='true'] {
+  --_bg: var(--sakura);
+  --_fg: var(--on-sakura);
+  --_bd: var(--sakura-deep);
+  --_bg-hover: var(--sakura-press);
+}
+.app-answers__label {
+  flex: 1;
+  min-width: 0;
+}
+// Le raccourci clavier n'a de sens qu'avec un clavier, donc un pointeur fin.
+.app-key {
+  display: none;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  box-shadow: inset 0 0 0 var(--border-control) var(--line-strong);
+  color: var(--ink-muted);
+  font: 700 12px/16px var(--font-text);
+  font-variant-numeric: tabular-nums;
+}
+.app-answers .fd-button[aria-pressed='true'] .app-key {
+  box-shadow: inset 0 0 0 var(--border-control) var(--sakura-deep);
+  color: var(--on-sakura);
+}
+@media (hover: hover) {
+  .app-key {
+    display: inline-grid;
+  }
+}
+@media (min-width: 720px) {
+  .app-q h1 {
+    font-size: 28px;
+    line-height: 38px;
+  }
+}

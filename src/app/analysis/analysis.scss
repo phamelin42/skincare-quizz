@@ -1,0 +1,15 @@
+.app-analysis {
+  display: grid;
+  gap: var(--space-5);
+  align-content: center;
+  justify-items: center;
+  min-height: 50vh;
+  text-align: center;
+}
+.app-analysis p {
+  margin: 0;
+  font: 700 18px/26px var(--font-text);
+}
+.app-analysis p:focus {
+  outline: none;
+}
