@@ -10,3 +10,6 @@
   margin: 0;
   font: 700 18px/26px var(--font-text);
 }
+.app-analysis p:focus {
+  outline: none;
+}

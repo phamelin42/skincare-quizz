@@ -29,9 +29,10 @@ export class App {
   protected readonly isDark = computed(() => this.themeService.theme() === 'dark');
 
   constructor() {
-    // Chaque écran commence en haut de page, comme une nouvelle page.
+    // Chaque écran et chaque question commencent en haut de page, comme une nouvelle page.
     afterRenderEffect(() => {
       this.quiz.screen();
+      this.quiz.index();
       this.window?.scrollTo?.(0, 0);
     });
   }

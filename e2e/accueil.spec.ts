@@ -22,6 +22,11 @@ async function expectNoViolations(page: Page) {
     .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
     .analyze();
   expect(violations).toEqual([]);
+  // Hors WCAG mais exigé par le projet : un seul h1, des titres sans saut et jamais vides.
+  const headings = await new AxeBuilder({ page })
+    .withRules(['page-has-heading-one', 'heading-order', 'empty-heading'])
+    .analyze();
+  expect(headings.violations).toEqual([]);
 }
 
 test('la page présente le questionnaire', async ({ page }) => {
@@ -58,6 +63,7 @@ test('le parcours se fait entièrement au clavier', async ({ page }) => {
 
   await answerAll(page);
   await expect(page.getByRole('status')).toHaveText('Analyse de vos réponses…');
+  await expect(page.getByRole('status')).toBeFocused();
   const result = page.getByRole('heading', { level: 1, name: /Vos réponses évoquent une peau/ });
   await expect(result).toBeFocused();
   for (const name of [
@@ -84,6 +90,16 @@ test('rien ne déborde en largeur à 320 px', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 });
   await page.goto('/');
   await page.getByRole('button', { name: 'Commencer' }).click();
+  await expect(page.getByText('Question 1 sur 10', { exact: true })).toBeVisible();
+
+  // Une réponse donnée en bas de page ramène la question suivante en haut.
+  await page.getByRole('button', { name: /Reste confortable/ }).click();
+  await expect(page.getByText('Question 2 sur 10', { exact: true })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  const back = await page.getByRole('button', { name: 'Précédent' }).boundingBox();
+  expect(back!.height).toBeGreaterThanOrEqual(44);
+  await page.getByRole('button', { name: 'Précédent' }).click();
+
   await answerAll(page);
   await expect(page.getByRole('button', { name: 'Recommencer' })).toBeVisible();
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
