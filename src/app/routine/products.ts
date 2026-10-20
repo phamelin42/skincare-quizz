@@ -1,5 +1,5 @@
 import { InjectionToken } from '@angular/core';
-import { INGREDIENTS } from './content';
+import { EVENING_TITLES, INGREDIENTS, SERUM_NAMES } from './content';
 import type { ProductCard, Profile } from './profile';
 
 /** Identifiant du compte Partenaires Amazon ; le seul endroit où il s’écrit. */
@@ -50,10 +50,28 @@ const ASIN = /^[A-Z0-9]{10}$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 /** Les cartes qui montrent des exemples ; `makeupRemover` et `exfoliant` n’en ont pas. */
 const CARDS: readonly string[] = ['serum', 'evening', 'cleanser', 'moisturiser', 'sunscreen'];
-const ACTIVE_CARDS: readonly string[] = ['serum', 'evening'];
+/**
+ * Les actifs que le profil peut demander à chaque carte : les clés de `SERUM_NAMES` et
+ * `EVENING_TITLES`, les mêmes que `profile.serum` et `profile.evening`. Une autre clé ne
+ * s’afficherait jamais.
+ */
+const ACTIVES: Readonly<Record<string, object>> = { serum: SERUM_NAMES, evening: EVENING_TITLES };
+
+const QUALIFIER = /\s*(\([^)]*\)|\[[^\]]*\])$/;
+
+/**
+ * Un nom INCI sans casse ni précision finale : les fabricants écrivent `Titanium Dioxide [nano]`
+ * (suffixe imposé par l’UE aux nanomatériaux) ou `Glycerin (vegetable)`, et ce sont les mêmes
+ * ingrédients que ceux des repères de la carte.
+ */
+function normalise(name: string): string {
+  let result = name.trim().toLowerCase();
+  while (QUALIFIER.test(result)) result = result.replace(QUALIFIER, '');
+  return result;
+}
 
 function normalised(inci: readonly string[]): Set<string> {
-  return new Set(inci.map((name) => name.trim().toLowerCase()));
+  return new Set(inci.map(normalise));
 }
 
 /**
@@ -72,15 +90,16 @@ export function catalogueDefects(catalogue: readonly Product[]): string[] {
     if (!DATE.test(product.validated)) defect(`date de validation invalide (${product.validated})`);
     if (!CARDS.includes(product.card)) defect(`carte inconnue (${product.card})`);
     if (product.card === 'sunscreen' && product.spf === null) defect('SPF manquant');
-    if (!ACTIVE_CARDS.includes(product.card)) continue;
+    const allowed = ACTIVES[product.card];
+    if (!allowed) continue;
     if (product.active === null) {
       defect('actif manquant');
-    } else if (!Object.hasOwn(INGREDIENTS, product.active)) {
-      defect(`actif inconnu (${product.active})`);
+    } else if (!Object.hasOwn(allowed, product.active)) {
+      defect(`actif ${product.active} impossible pour la carte ${product.card}`);
     } else {
       const present = normalised(product.inci);
       const known = INGREDIENTS[product.active as keyof typeof INGREDIENTS].inci;
-      if (!known.some((name) => present.has(name.toLowerCase()))) {
+      if (!known.some((name) => present.has(normalise(name)))) {
         defect(`aucun INCI de l’actif ${product.active} dans la composition`);
       }
     }
@@ -109,7 +128,7 @@ export function examplesFor(
         }
       }
       if (card.key === 'cleanser' || card.key === 'moisturiser') {
-        return card.labels.some((label) => inci.has(label.toLowerCase()));
+        return card.labels.some((label) => inci.has(normalise(label)));
       }
       return true;
     })

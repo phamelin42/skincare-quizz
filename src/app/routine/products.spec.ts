@@ -133,6 +133,22 @@ describe('catalogueDefects', () => {
     ['un sérum sans actif', altered('serum-niacinamide', { active: null })],
     ['un soin du soir sans actif', altered('evening-retinol', { active: null })],
     ['un actif hors INGREDIENTS', altered('serum-niacinamide', { active: 'collagen' })],
+    [
+      'un sérum dont l’actif est réservé au soir',
+      altered('serum-niacinamide', { active: 'retinol', inci: ['Aqua', 'Retinol'] }),
+    ],
+    [
+      'un soin du soir dont l’actif est réservé aux sérums',
+      altered('evening-retinol', { active: 'niacinamide', inci: ['Aqua', 'Niacinamide'] }),
+    ],
+    [
+      'un sérum dont l’actif n’est jamais demandé par un profil (ceramides)',
+      altered('serum-niacinamide', { active: 'ceramides', inci: ['Aqua', 'Ceramide NP'] }),
+    ],
+    [
+      'un soin du soir dont l’actif n’est jamais demandé par un profil (ceramides)',
+      altered('evening-retinol', { active: 'ceramides', inci: ['Aqua', 'Ceramide NP'] }),
+    ],
     ['un écran solaire sans SPF', altered('sunscreen-30-mineral', { spf: null })],
     [
       'un sérum dont l’INCI ne contient pas son actif',
@@ -155,6 +171,11 @@ describe('catalogueDefects', () => {
   it('compare l’INCI de l’actif sans tenir compte de la casse', () => {
     const upper = altered('serum-niacinamide', { inci: ['AQUA', 'NIACINAMIDE'] });
     expect(catalogueDefects([upper])).toEqual([]);
+  });
+
+  it('accepte un INCI suivi d’une précision entre parenthèses ou crochets', () => {
+    const qualified = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide (vitamin B3)'] });
+    expect(catalogueDefects([qualified])).toEqual([]);
   });
 
   it('signale un id en double', () => {
@@ -282,6 +303,36 @@ describe('examplesFor', () => {
     expect(ids(examplesFor(cardOf(calm, 'sunscreen'), calm, FIXTURE_CATALOGUE))).toContain(
       'sunscreen-30-chemical',
     );
+  });
+
+  it('reconnaît un filtre minéral suivi de [nano] ou d’une précision, pour une peau réactive', () => {
+    const reactive = profileFor({ reactions: 'often', outdoors: 'daily' });
+    const card = cardOf(reactive, 'sunscreen');
+    for (const entry of [
+      'Titanium Dioxide [nano]',
+      'Titanium Dioxide (nano)',
+      'ZINC OXIDE [NANO]',
+    ]) {
+      const nano = altered('sunscreen-50-mineral', { inci: ['Aqua', entry] });
+      expect(examplesFor(card, reactive, [nano])).toEqual([nano]);
+    }
+    const chemical = altered('sunscreen-50-chemical', { inci: ['Aqua', 'Avobenzone [nano]'] });
+    expect(examplesFor(card, reactive, [chemical])).toEqual([]);
+  });
+
+  it('reconnaît un repère d’étiquette suivi d’une précision au nettoyant', () => {
+    const oily = profileFor({ ...OILY, concern: 'none' });
+    const qualified = altered('cleanser-zinc', { inci: ['Aqua', 'Glycerin (vegetable)'] });
+    expect(examplesFor(cardOf(oily, 'cleanser'), oily, [qualified])).toEqual([qualified]);
+  });
+
+  it('écarte aussi Fragrance (Parfum) et Parfum (Fragrance) pour une peau réactive', () => {
+    const profile = profileFor({ ...OILY, reactions: 'often', concern: 'blemishes' });
+    const card = cardOf(profile, 'serum');
+    for (const word of ['Fragrance (Parfum)', 'Parfum (Fragrance)']) {
+      const scented = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide', word] });
+      expect(examplesFor(card, profile, [scented])).toEqual([]);
+    }
   });
 
   it('exige au moins un repère d’étiquette de la carte au nettoyant', () => {
