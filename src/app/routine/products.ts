@@ -86,6 +86,40 @@ function normalise(name: string): string {
   return result;
 }
 
+/**
+ * Les filtres UV organiques (« chimiques »), sous leur nom INCI et leurs synonymes courants :
+ * un écran qui en contient, même avec un filtre minéral (écran « hybride »), n’est pas
+ * proposé à une peau réactive. Comparés après `normalise`, donc sans casse ni précision finale
+ * (`[nano]`). Une liste fermée : un filtre absent ici passerait pour minéral, d’où l’exigence
+ * de la compléter à chaque ajout au catalogue.
+ */
+export const CHEMICAL_UV_FILTERS: readonly string[] = [
+  'Octocrylene',
+  'Butyl Methoxydibenzoylmethane',
+  'Ethylhexyl Methoxycinnamate',
+  'Homosalate',
+  'Ethylhexyl Salicylate',
+  'Benzophenone-3',
+  'Bis-Ethylhexyloxyphenol Methoxyphenyl Triazine',
+  'Methylene Bis-Benzotriazolyl Tetramethylbutylphenol',
+  'Ethylhexyl Triazone',
+  'Diethylamino Hydroxybenzoyl Hexyl Benzoate',
+  'Drometrizole Trisiloxane',
+  'Terephthalylidene Dicamphor Sulfonic Acid',
+  'Phenylbenzimidazole Sulfonic Acid',
+  'Diethylhexyl Butamido Triazone',
+  'Isoamyl P-Methoxycinnamate',
+  '4-Methylbenzylidene Camphor',
+  'Polysilicone-15',
+  'Octisalate',
+  'Octinoxate',
+  'Avobenzone',
+  'Oxybenzone',
+  'Bemotrizinol',
+];
+
+const CHEMICAL_UV = new Set(CHEMICAL_UV_FILTERS.map(normalise));
+
 function normalised(inci: readonly string[]): Set<string> {
   return new Set(inci.map(normalise));
 }
@@ -141,8 +175,10 @@ export function examplesFor(
       if (profile.reactive) {
         const scented = product.inci.some((name) => /^(parfum|fragrance)/i.test(name.trim()));
         if (scented) return false;
-        if (card.key === 'sunscreen' && !inci.has('zinc oxide') && !inci.has('titanium dioxide')) {
-          return false;
+        if (card.key === 'sunscreen') {
+          const mineral = inci.has('zinc oxide') || inci.has('titanium dioxide');
+          // Minéral seulement : un filtre chimique en plus (écran hybride) écarte le produit.
+          if (!mineral || [...inci].some((name) => CHEMICAL_UV.has(name))) return false;
         }
       }
       if (card.key === 'cleanser' || card.key === 'moisturiser') {

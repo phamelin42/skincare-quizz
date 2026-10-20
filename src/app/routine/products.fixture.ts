@@ -93,6 +93,13 @@ export const FIXTURE_CATALOGUE: readonly Product[] = [
     spf: 30,
     inci: ['Aqua', 'Avobenzone', 'Octocrylene'],
   }),
+  // Filtre minéral et filtre organique ensemble : seul un écran « hybride » de ce type est écarté
+  // pour une peau réactive.
+  product('sunscreen-30-hybrid', {
+    card: 'sunscreen',
+    spf: 30,
+    inci: ['Aqua', 'Titanium Dioxide [nano]', 'Octocrylene', 'Glycerin'],
+  }),
   product('sunscreen-50-mineral', {
     card: 'sunscreen',
     spf: 50,
@@ -102,5 +109,10 @@ export const FIXTURE_CATALOGUE: readonly Product[] = [
     card: 'sunscreen',
     spf: 50,
     inci: ['Aqua', 'Avobenzone', 'Octocrylene'],
+  }),
+  product('sunscreen-50-hybrid', {
+    card: 'sunscreen',
+    spf: 50,
+    inci: ['Aqua', 'Zinc Oxide', 'Ethylhexyl Salicylate', 'Glycerin'],
   }),
 ];

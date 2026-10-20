@@ -6,6 +6,7 @@ import {
   amazonUrl,
   CATALOGUE,
   catalogueDefects,
+  CHEMICAL_UV_FILTERS,
   EXAMPLES_NOTE,
   examplesFor,
   PRODUCT_CATALOGUE,
@@ -354,7 +355,11 @@ describe('examplesFor', () => {
       const profile = profileFor({ reactions: 'never', outdoors });
       expect(profile.spf).toBe(spf);
       const examples = examplesFor(cardOf(profile, 'sunscreen'), profile, FIXTURE_CATALOGUE);
-      expect(ids(examples)).toEqual([`sunscreen-${spf}-mineral`, `sunscreen-${spf}-chemical`]);
+      expect(ids(examples)).toEqual([
+        `sunscreen-${spf}-mineral`,
+        `sunscreen-${spf}-chemical`,
+        `sunscreen-${spf}-hybrid`,
+      ]);
     }
   });
 
@@ -415,6 +420,72 @@ describe('examplesFor', () => {
     }
     const chemical = altered('sunscreen-50-chemical', { inci: ['Aqua', 'Avobenzone [nano]'] });
     expect(examplesFor(card, reactive, [chemical])).toEqual([]);
+  });
+
+  describe('écrans solaires hybrides', () => {
+    const reactive = profileFor({ reactions: 'often', outdoors: 'daily' });
+    const calm = profileFor({ reactions: 'never', outdoors: 'daily' });
+    const hybrid = altered('sunscreen-50-mineral', {
+      id: 'hybride',
+      inci: ['Aqua', 'Titanium Dioxide [nano]', 'Octocrylene'],
+    });
+
+    it('écarte pour une peau réactive un écran à filtre minéral qui contient aussi un filtre chimique', () => {
+      expect(examplesFor(cardOf(reactive, 'sunscreen'), reactive, [hybrid])).toEqual([]);
+      // Contrôle négatif : une peau qui ne réagit pas le garde, seul le SPF compte.
+      expect(examplesFor(cardOf(calm, 'sunscreen'), calm, [hybrid])).toEqual([hybrid]);
+    });
+
+    it('garde un écran uniquement minéral pour les deux profils', () => {
+      const mineral = altered('sunscreen-50-mineral', {
+        inci: ['Aqua', 'Zinc Oxide', 'Titanium Dioxide [nano]', 'Glycerin'],
+      });
+      expect(examplesFor(cardOf(reactive, 'sunscreen'), reactive, [mineral])).toEqual([mineral]);
+      expect(examplesFor(cardOf(calm, 'sunscreen'), calm, [mineral])).toEqual([mineral]);
+    });
+
+    it('écarte chacun des filtres chimiques de la liste, même avec casse ou précision', () => {
+      expect(CHEMICAL_UV_FILTERS.length).toBeGreaterThanOrEqual(22);
+      const card = cardOf(reactive, 'sunscreen');
+      for (const filter of CHEMICAL_UV_FILTERS) {
+        for (const entry of [filter, filter.toUpperCase(), `${filter} [nano]`, `${filter} (UV)`]) {
+          const product = altered('sunscreen-50-mineral', { inci: ['Aqua', 'Zinc Oxide', entry] });
+          expect(examplesFor(card, reactive, [product]), entry).toEqual([]);
+        }
+      }
+    });
+
+    it('nomme les filtres chimiques courants et leurs synonymes', () => {
+      const lower = CHEMICAL_UV_FILTERS.map((name) => name.toLowerCase());
+      for (const name of [
+        'octocrylene',
+        'butyl methoxydibenzoylmethane',
+        'avobenzone',
+        'ethylhexyl methoxycinnamate',
+        'octinoxate',
+        'benzophenone-3',
+        'oxybenzone',
+        'homosalate',
+        'ethylhexyl salicylate',
+        'octisalate',
+        'bemotrizinol',
+        'polysilicone-15',
+      ]) {
+        expect(lower, name).toContain(name);
+      }
+    });
+
+    it('ne prend pas pour un filtre chimique un ingrédient ordinaire ou le filtre minéral', () => {
+      const lower = CHEMICAL_UV_FILTERS.map((name) => name.toLowerCase());
+      for (const name of ['zinc oxide', 'titanium dioxide', 'glycerin', 'aqua', 'tocopherol']) {
+        expect(lower, name).not.toContain(name);
+      }
+    });
+
+    it('exige toujours un filtre minéral pour une peau réactive', () => {
+      const none = altered('sunscreen-50-mineral', { inci: ['Aqua', 'Glycerin'] });
+      expect(examplesFor(cardOf(reactive, 'sunscreen'), reactive, [none])).toEqual([]);
+    });
   });
 
   it('reconnaît un repère d’étiquette suivi d’une précision au nettoyant', () => {
