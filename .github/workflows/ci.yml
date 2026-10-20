@@ -14,9 +14,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: package.json
-      # Pas encore de package-lock.json : repasser sur `npm ci` une fois le lock committé.
-      - run: npm install --no-audit --no-fund
+          cache-dependency-path: package-lock.json
+      - run: npm ci --no-audit --no-fund
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

@@ -16,14 +16,14 @@ Quiz éducatif sur les soins de la peau (types de peau, ingrédients actifs, rou
 
 Node ≥ 22.22.3 (exigé par Angular 22 ; `.nvmrc` : 24). Site : skincare-quizz.phamelin.fr.
 
-| Commande                             | Rôle                                                              |
-| ------------------------------------ | ----------------------------------------------------------------- |
-| `npm start`                          | Serveur de développement                                          |
-| `npm test`                           | Tests unitaires (Vitest via `ng test`)                            |
-| `npm run lint` / `npm run typecheck` | ESLint (angular-eslint) / tsc sur l'appli et les specs            |
-| `npm run build`                      | Build de production (`dist/skincare-quizz/browser`)                      |
-| `npm run e2e`                        | Playwright sur ce build : parcours, clavier, axe Jour/Nuit        |
-| `npm run format` / `format:check`    | Prettier                                                          |
+| Commande                             | Rôle                                                       |
+| ------------------------------------ | ---------------------------------------------------------- |
+| `npm start`                          | Serveur de développement                                   |
+| `npm test`                           | Tests unitaires (Vitest via `ng test`)                     |
+| `npm run lint` / `npm run typecheck` | ESLint (angular-eslint) / tsc sur l'appli et les specs     |
+| `npm run build`                      | Build de production (`dist/skincare-quizz/browser`)        |
+| `npm run e2e`                        | Playwright sur ce build : parcours, clavier, axe Jour/Nuit |
+| `npm run format` / `format:check`    | Prettier                                                   |
 
 Une tâche est terminée quand `lint`, `typecheck`, `test` et `build` sont verts, et `e2e` si l'interface, le clavier ou le focus changent.
 
@@ -69,7 +69,3 @@ Installée depuis GitHub à un commit précis de `main` (`"fuda": "github:phamel
 ## Versions
 
 Angular 22 et ses outils sont à jour au moment de la création. TypeScript reste en `~6.0` : Angular 22 exige `>=6.0 <6.1`, la série 7 n'est pas encore compatible. Avant de monter une version majeure, vérifier la compatibilité de `@angular/build` et de `typescript-eslint`.
-
-## Premier démarrage
-
-Pas encore de `package-lock.json` : lancer `npm install`, committer le lock, puis passer `.github/workflows/ci.yml` et `vercel.json` de `npm install` à `npm ci`.
