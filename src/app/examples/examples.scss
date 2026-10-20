@@ -1,0 +1,39 @@
+.app-examples {
+  display: block;
+  // Dans l'emplacement `actions` (une rangée qui passe à la ligne) : sous les pastilles, sur toute la largeur.
+  flex: 1 0 100%;
+}
+.app-examples__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.app-examples__list li {
+  display: grid;
+  gap: var(--space-1);
+}
+// Le soulignement reste : la couleur seule ne distingue pas un lien d’un texte.
+.app-examples a {
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  color: var(--link);
+  font: 700 14px/20px var(--font-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.app-examples a:focus-visible {
+  // Le contour transparent reste visible en mode contraste forcé, où l'ombre disparaît.
+  outline: 2px solid transparent;
+  box-shadow: var(--focus-ring);
+}
+.app-examples__brand,
+.app-examples__inci {
+  color: var(--ink-muted);
+  font: 500 14px/22px var(--font-text);
+  text-wrap: pretty;
+}
