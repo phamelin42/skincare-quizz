@@ -1,9 +1,27 @@
+<a class="app-skip" href="#contenu">Aller au contenu</a>
 <header class="app-header">
-  <h1 class="app-title">{{ title }}</h1>
+  <span class="app-brand"><fd-emblem name="sakura" [size]="32" />Skincare Quizz</span>
   <fd-switch [checked]="isDark()" (checkedChange)="setDark($event)">Thème nuit</fd-switch>
 </header>
 
-<main class="app-main">
-  <p class="app-lead">{{ tagline }}</p>
-  <p class="app-soon">En construction.</p>
+<main id="contenu" class="app-main" tabindex="-1">
+  @switch (quiz.screen()) {
+    @case ('home') {
+      <app-home />
+    }
+    @case ('quiz') {
+      <app-question />
+    }
+    @case ('analysis') {
+      <app-analysis />
+    }
+    @case ('result') {
+      <app-result />
+    }
+  }
 </main>
+
+<footer class="app-footer">
+  Les conseils sont généraux et ne remplacent pas l’avis d’un médecin ou d’un dermatologue. Aucune
+  marque n’est recommandée.
+</footer>

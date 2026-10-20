@@ -1,7 +1,7 @@
 {
   "name": "skincare-quizz",
   "version": "0.0.0",
-  "description": "Connaissez-vous bien les soins de la peau ?",
+  "description": "Votre routine de soin en 10 questions",
   "private": true,
   "engines": {
     "node": ">=22.22.3"

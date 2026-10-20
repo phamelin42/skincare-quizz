@@ -2,13 +2,25 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
-    <title>Skincare Quizz</title>
+    <title>Skincare Quizz : votre routine de soin en 10 questions</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Quiz pour tester ses connaissances sur les soins de la peau : types de peau, ingrédients actifs, routines." />
+    <meta
+      name="description"
+      content="Dix questions sur votre peau et vos habitudes pour une routine matin et soir, les ingrédients à repérer et des types de produits, sans marque."
+    />
+    <link rel="canonical" href="https://skincare-quizz.phamelin.fr/" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="favicon.ico" sizes="48x48" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <!-- Rétablit le thème Nuit choisi avant le premier rendu, sans flash (même clé que FdThemeService). -->
+    <script>
+      try {
+        if (localStorage.getItem('fuda-theme') === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch {}
+    </script>
   </head>
   <body>
     <app-root></app-root>
