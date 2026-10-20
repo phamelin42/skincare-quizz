@@ -217,11 +217,62 @@ describe('catalogueDefects', () => {
       'bienfaits',
       'Clinically Proven',
       'cliniquement prouvé',
+      'anti-UV',
+      'Anti-Pollution',
+      'effet lifting',
+      'Lifting',
+      'repulpe',
+      'REPULPANT',
+      'Booster d’éclat',
+      'booster',
     ];
     for (const term of terms) {
       const defects = catalogueDefects([altered('serum-niacinamide', { name: `Sérum ${term}` })]);
       expect(defects, term).toHaveLength(1);
     }
+  });
+
+  it('refuse un titre marketing en nom de produit, la marque restant un champ à part', () => {
+    const marketing = [
+      'Sérum Visage Anti-Rides Booster d’éclat',
+      'Crème Anti-UV Lifting Repulpant',
+      'Fluide Anti-Pollution',
+    ];
+    for (const name of marketing) {
+      const defects = catalogueDefects([altered('serum-niacinamide', { name })]);
+      expect(defects, name).toHaveLength(1);
+      expect(defects[0], name).toContain('promesse de résultat');
+    }
+    const neutral = altered('serum-niacinamide', {
+      name: 'Sérum à la niacinamide 10 %',
+      brand: 'Marque d’essai',
+    });
+    expect(catalogueDefects([neutral])).toEqual([]);
+  });
+
+  it('ne prend pas pour une promesse les noms INCI ordinaires', () => {
+    const inci = [
+      'Aqua',
+      'Glycerin',
+      'Tocopherol',
+      'Tocopheryl Acetate',
+      'Butylene Glycol',
+      'Sodium Hyaluronate',
+      'Niacinamide',
+      'Ascorbyl Glucoside',
+      'Caprylic/Capric Triglyceride',
+      'Squalane',
+      'Zinc Oxide',
+      'Titanium Dioxide [nano]',
+      'Antioxidant Complex',
+      'Panthenol',
+      'Phenoxyethanol',
+    ];
+    for (const entry of inci) {
+      expect(PROMISE.test(entry), entry).toBe(false);
+    }
+    const product = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide', ...inci] });
+    expect(catalogueDefects([product])).toEqual([]);
   });
 
   it('signale un id en double', () => {

@@ -14,6 +14,11 @@ export const EXAMPLES_NOTE =
 
 export interface Product {
   readonly id: string;
+  /**
+   * Nom descriptif neutre, écrit par nous : type, actif et dosage (« Sérum à la niacinamide
+   * 10 % »). Jamais le titre de la fiche Amazon, qui porte des arguments de vente ; la marque
+   * est le champ `brand`.
+   */
   readonly name: string;
   readonly brand: string;
   /** Clé de la carte illustrée : `cleanser`, `serum`, `evening`, etc. */
@@ -61,10 +66,12 @@ const ACTIVES: Readonly<Record<string, object>> = { serum: SERUM_NAMES, evening:
  * Les formulations qui promettent un résultat, en français et en anglais : le contenu du site
  * n’en fait aucune, et un nom de produit qui en porte une ne doit pas s’afficher tel quel.
  * Volontairement large (sans bornes de mot) : un faux positif se corrige en renommant, un
- * faux négatif publie une promesse.
+ * faux négatif publie une promesse. `anti-` avec son trait d’union attrape les titres
+ * marketing (anti-UV, anti-pollution…) sans toucher « antioxidant » ; `lifting`, `repulp` et
+ * `booster` sont des arguments de vente que seul un titre de fiche porte.
  */
 export const PROMISE =
-  /guéri|soign|anti-?(rides?|taches?|âge|age|imperfections?|acné|cernes?)|efface|élimin|miracle|garanti|prévient|répare|rajeun|éclaircit|détox|bienfait|clinically proven|cliniquement prouvé/i;
+  /guéri|soign|anti-?(rides?|taches?|âge|age|imperfections?|acné|cernes?)|efface|élimin|miracle|garanti|prévient|répare|rajeun|éclaircit|détox|bienfait|clinically proven|cliniquement prouvé|anti-|lifting|repulp|booster/i;
 
 const QUALIFIER = /\s*(\([^)]*\)|\[[^\]]*\])$/;
 
