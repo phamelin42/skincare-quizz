@@ -1,4 +1,5 @@
-import { computed, Service, signal } from '@angular/core';
+import { computed, inject, Service, signal } from '@angular/core';
+import { examplesFor, PRODUCT_CATALOGUE } from './products';
 import { type Answers, analyse, ingredients, products, routine } from './profile';
 import { QUESTIONS } from './questions';
 
@@ -15,6 +16,8 @@ const noAnswers = (): (number | null)[] => QUESTIONS.map(() => null);
 @Service()
 export class QuizService {
   readonly questions = QUESTIONS;
+
+  private readonly catalogue = inject(PRODUCT_CATALOGUE);
 
   private readonly screenState = signal<Screen>('home');
   private readonly indexState = signal(0);
@@ -40,7 +43,10 @@ export class QuizService {
     const profile = analyse(answers as Answers);
     return {
       profile,
-      products: products(profile),
+      products: products(profile).map((card) => ({
+        ...card,
+        examples: examplesFor(card, profile, this.catalogue),
+      })),
       routine: routine(profile),
       ingredients: ingredients(profile),
     };
