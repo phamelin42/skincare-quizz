@@ -73,15 +73,20 @@ const ACTIVES: Readonly<Record<string, object>> = { serum: SERUM_NAMES, evening:
 export const PROMISE =
   /guéri|soign|anti-?(rides?|taches?|âge|age|imperfections?|acné|cernes?)|efface|élimin|miracle|garanti|prévient|répare|rajeun|éclaircit|détox|bienfait|clinically proven|cliniquement prouvé|anti-|lifting|repulp|booster/i;
 
-const QUALIFIER = /\s*(\([^)]*\)|\[[^\]]*\])$/;
+const QUALIFIER = /\s*(\([^)]*\)|\[[^\]]*\]|[*.]+)$/;
 
 /**
  * Un nom INCI sans casse ni précision finale : les fabricants écrivent `Titanium Dioxide [nano]`
  * (suffixe imposé par l’UE aux nanomatériaux) ou `Glycerin (vegetable)`, et ce sont les mêmes
- * ingrédients que ceux des repères de la carte.
+ * ingrédients que ceux des repères de la carte. Un `*` (marque du bio, avant ou après le nom) et
+ * un point final (fin d’une liste recopiée) ne changent pas l’ingrédient non plus : sans cela,
+ * `Lavandula Angustifolia Oil*` échapperait aux règles d’exclusion.
  */
-function normalise(name: string): string {
-  let result = name.trim().toLowerCase();
+export function normalise(name: string): string {
+  let result = name
+    .trim()
+    .toLowerCase()
+    .replace(/^[*\s]+/, '');
   while (QUALIFIER.test(result)) result = result.replace(QUALIFIER, '');
   return result;
 }
@@ -116,24 +121,50 @@ export const CHEMICAL_UV_FILTERS: readonly string[] = [
   'Avobenzone',
   'Oxybenzone',
   'Bemotrizinol',
+  'Parsol 1789',
+  'Octyl Methoxycinnamate',
+  'Octyl Salicylate',
+  'Octyl Triazone',
+  'Benzophenone-1',
+  'Benzophenone-2',
+  'Benzophenone-4',
+  'Disodium Phenyl Dibenzimidazole Tetrasulfonate',
+  'Tris-Biphenyl Triazine',
+  'Ethylhexyl Dimethyl PABA',
+  'Octyl Dimethyl PABA',
+  'Padimate O',
+  'PEG-25 PABA',
+  'Bisoctrizole',
+  'Ecamsule',
+  'Iscotrizinol',
 ];
 
 /**
  * Les huiles essentielles, sur une entrée INCI déjà normalisée : la mention littérale, ou une
- * plante aromatique dont l’entrée finit par « Oil ». Le nom de la plante ne suffit pas (un
- * extrait de lavande n’est pas une huile essentielle) et « Oil » seul non plus : les huiles
- * végétales (tournesol, jojoba, amande douce) et le squalane ne sont pas concernés. Une liste
- * fermée de plantes, à compléter avec le catalogue.
+ * plante aromatique (nom botanique ou nom courant anglais) dont l’entrée finit par « Oil ». Le
+ * nom de la plante ne suffit pas (un extrait de lavande n’est pas une huile essentielle) et
+ * « Oil » seul non plus : les huiles végétales (tournesol, jojoba, amande douce, argan, olive,
+ * églantier, pépins d’agrumes) et le squalane ne sont pas concernés. Une liste fermée de
+ * plantes, à compléter avec le catalogue.
  */
 export const ESSENTIAL_OIL = new RegExp(
   [
     'essential oil|huile essentielle',
-    '^(?:lavandula|mentha|rosmarinus|melaleuca|eucalyptus|cymbopogon|pelargonium|cananga|ylang|santalum|juniperus|thymus|salvia sclarea|salvia officinalis|origanum|cinnamomum|syzygium aromaticum|boswellia|rosa damascena|jasminum|chamomilla recutita|matricaria|pogostemon|vetiveria|cedrus|litsea|abies)\\b.*\\boil$',
-    '^citrus\\b.*\\b(?:peel|fruit|leaf|flower)\\s+oil$',
+    '^(?:lavandula|mentha|rosmarinus|melaleuca|eucalyptus|cymbopogon|pelargonium|cananga|ylang|santalum|juniperus|thymus|salvia sclarea|salvia officinalis|origanum|cinnamomum|syzygium aromaticum|eugenia|boswellia|rosa damascena|rosa centifolia|jasminum|chamomilla recutita|matricaria|anthemis|pogostemon|vetiveria|cedrus|litsea|abies|pinus|zingiber|ocimum|piper)\\b.*\\boil$',
+    // Les agrumes : l’huile de pépins est une huile végétale, pas une huile essentielle.
+    '^citrus\\b(?!.*\\bseed\\b).*\\boil$',
+    '^(?:tea tree|lavender|peppermint|spearmint|rosemary|eucalyptus|clove|cinnamon|thyme|geranium|sandalwood|patchouli|bergamot|lemon|orange)\\b.*\\boil$',
   ].join('|'),
 );
 
 const CHEMICAL_UV = new Set(CHEMICAL_UV_FILTERS.map(normalise));
+
+/**
+ * Les filtres minéraux, sous leur nom INCI ou leur code colorant : les fabricants listent aussi
+ * `CI 77891` (dioxyde de titane) et `CI 77947` (oxyde de zinc), le plus souvent suivis du nom
+ * entre parenthèses, que `normalise` retire.
+ */
+const MINERAL_UV = /^(?:zinc oxide|titanium dioxide|ci ?77947|ci ?77891)$/;
 
 function normalised(inci: readonly string[]): Set<string> {
   return new Set(inci.map(normalise));
@@ -188,12 +219,13 @@ export function examplesFor(
       if (card.key === 'sunscreen' && product.spf !== profile.spf) return false;
       const inci = normalised(product.inci);
       if (profile.reactive) {
-        const scented = product.inci.some((name) => /^(parfum|fragrance)/i.test(name.trim()));
-        if (scented || [...inci].some((name) => ESSENTIAL_OIL.test(name))) return false;
+        const entries = [...inci];
+        const scented = entries.some((name) => /^(parfum|fragrance)/.test(name));
+        if (scented || entries.some((name) => ESSENTIAL_OIL.test(name))) return false;
         if (card.key === 'sunscreen') {
-          const mineral = inci.has('zinc oxide') || inci.has('titanium dioxide');
+          const mineral = entries.some((name) => MINERAL_UV.test(name));
           // Minéral seulement : un filtre chimique en plus (écran hybride) écarte le produit.
-          if (!mineral || [...inci].some((name) => CHEMICAL_UV.has(name))) return false;
+          if (!mineral || entries.some((name) => CHEMICAL_UV.has(name))) return false;
         }
       }
       if (card.key === 'cleanser' || card.key === 'moisturiser') {

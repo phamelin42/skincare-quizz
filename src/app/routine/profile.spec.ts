@@ -5,6 +5,7 @@ import {
   CHEMICAL_UV_FILTERS,
   ESSENTIAL_OIL,
   examplesFor,
+  normalise,
   type Product,
 } from './products';
 import { FIXTURE_CATALOGUE } from './products.fixture';
@@ -203,7 +204,7 @@ describe('exemples de produits', () => {
           };
           if (product.card !== card.key) fail('mauvaise carte');
           if (profile.reactive && /parfum|fragrance/.test(inci)) fail('parfum pour peau réactive');
-          const oil = product.inci.find((name) => ESSENTIAL_OIL.test(name.trim().toLowerCase()));
+          const oil = product.inci.find((name) => ESSENTIAL_OIL.test(normalise(name)));
           if (profile.reactive && oil) fail(`huile essentielle (${oil}) pour peau réactive`);
           if (card.key === 'serum' || card.key === 'evening') {
             const active = card.key === 'serum' ? profile.serum : profile.evening;
