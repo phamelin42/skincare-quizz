@@ -1,6 +1,6 @@
 # Skincare Quizz
 
-Votre routine de soin en 10 questions : type de peau évoqué, ingrédients à repérer, routine matin et soir et types de produits, sans marque. Site : <https://skincare-quizz.phamelin.fr>, construit avec le design system [Fuda](https://github.com/phamelin42/design-system-fuda).
+Votre routine de soin en 10 questions : type de peau évoqué, ingrédients à repérer, routine matin et soir et types de produits. Site : <https://skincare-quizz.phamelin.fr>, construit avec le design system [Fuda](https://github.com/phamelin42/design-system-fuda).
 
 ## Démarrer
 
