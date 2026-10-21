@@ -170,6 +170,16 @@ export const ESSENTIAL_OIL = new RegExp(
   ].join('|'),
 );
 
+/**
+ * L'alcool desséchant (éthanol) sur une entrée INCI déjà normalisée : `Alcohol`, `Alcohol Denat.`,
+ * `SD Alcohol 40-B`, `Denatured Alcohol`, `Ethanol`, `Isopropyl Alcohol`. Les alcools gras
+ * (cétylique, cétéarylique, stéarylique, béhénylique…) sont des corps gras doux, et l'alcool
+ * benzylique un conservateur : aucun ne correspond, car l'entrée entière doit être l'un des noms
+ * ci-dessus.
+ */
+export const DRYING_ALCOHOL =
+  /^(?:alcohol(?: denat\.?)?(?: denatured)?|alcohol denat\.? [\w.-]+|sd alcohol(?: [\w-]+)?|denatured alcohol|ethanol|isopropyl alcohol)$/;
+
 const CHEMICAL_UV = new Set(CHEMICAL_UV_FILTERS.map(normalise));
 
 /**
@@ -247,7 +257,8 @@ export function examplesFor(
       if (profile.reactive) {
         const entries = [...inci];
         const scented = entries.some((name) => /^(parfum|fragrance)/.test(name));
-        if (scented || entries.some((name) => ESSENTIAL_OIL.test(name))) return false;
+        const drying = entries.some((name) => DRYING_ALCOHOL.test(name));
+        if (scented || drying || entries.some((name) => ESSENTIAL_OIL.test(name))) return false;
         if (card.key === 'sunscreen') {
           const mineral = entries.some((name) => MINERAL_UV.test(name));
           // Minéral seulement : un filtre chimique en plus (écran hybride) écarte le produit.

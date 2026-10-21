@@ -7,6 +7,7 @@ import {
   CATALOGUE,
   catalogueDefects,
   CHEMICAL_UV_FILTERS,
+  DRYING_ALCOHOL,
   ESSENTIAL_OIL,
   EXAMPLES_NOTE,
   examplesFor,
@@ -807,5 +808,86 @@ describe('examplesFor', () => {
     const many = ['a', 'b', 'c', 'd', 'e'].map((id) => altered('serum-niacinamide', { id }));
     expect(ids(examplesFor(card, profile, many))).toEqual(['a', 'b', 'c']);
     expect(ids(examplesFor(card, profile, [...many].reverse()))).toEqual(['e', 'd', 'c']);
+  });
+});
+
+describe('alcool desséchant', () => {
+  const reactive = profileFor({ ...OILY, reactions: 'often', concern: 'blemishes' });
+  const calm = profileFor({ ...OILY, reactions: 'never', concern: 'blemishes' });
+
+  it('reconnaît l’alcool desséchant sous ses noms INCI, avec casse et précisions', () => {
+    for (const entry of [
+      'Alcohol',
+      'Alcohol Denat.',
+      'ALCOHOL DENAT',
+      'Alcohol Denat. (39C)',
+      'Alcohol Denat. 39C',
+      'Alcohol Denat. [ethanol]',
+      'SD Alcohol 40-B',
+      'SD Alcohol 40',
+      'SD Alcohol',
+      'Denatured Alcohol',
+      'Ethanol',
+      'Isopropyl Alcohol',
+      'Alcohol*',
+    ]) {
+      expect(DRYING_ALCOHOL.test(normalise(entry)), entry).toBe(true);
+    }
+  });
+
+  it('laisse passer les alcools gras et l’alcool benzylique', () => {
+    for (const entry of [
+      'Cetyl Alcohol',
+      'Cetearyl Alcohol',
+      'Stearyl Alcohol',
+      'Behenyl Alcohol',
+      'Myristyl Alcohol',
+      'Lauryl Alcohol',
+      'Arachidyl Alcohol',
+      'C14-22 Alcohols',
+      'Benzyl Alcohol',
+      'Phenoxyethanol',
+      'Dehydroacetic Acid',
+    ]) {
+      expect(DRYING_ALCOHOL.test(normalise(entry)), entry).toBe(false);
+    }
+  });
+
+  it('écarte pour une peau réactive un sérum à l’alcool, et le garde pour une peau qui ne réagit pas', () => {
+    const card = (profile: Profile) => cardOf(profile, 'serum');
+    for (const entry of ['Alcohol Denat.', 'Alcohol', 'SD Alcohol 40-B', 'Ethanol']) {
+      const drying = altered('serum-niacinamide', {
+        inci: ['Aqua', 'Niacinamide', entry],
+      });
+      expect(examplesFor(card(reactive), reactive, [drying]), entry).toEqual([]);
+      expect(examplesFor(card(calm), calm, [drying]), entry).toEqual([drying]);
+    }
+  });
+
+  it('garde pour une peau réactive un produit aux alcools gras et à l’alcool benzylique', () => {
+    const fatty = altered('serum-niacinamide', {
+      inci: ['Aqua', 'Niacinamide', 'Cetearyl Alcohol', 'Cetyl Alcohol', 'Benzyl Alcohol'],
+    });
+    expect(examplesFor(cardOf(reactive, 'serum'), reactive, [fatty])).toEqual([fatty]);
+  });
+
+  it('écarte l’alcool sur chaque carte à exemples pour une peau réactive', () => {
+    for (const key of ['serum', 'evening', 'cleanser', 'moisturiser', 'sunscreen']) {
+      const profile = profileFor({
+        ...OILY,
+        reactions: 'often',
+        concern: 'blemishes',
+        outdoors: 'daily',
+      });
+      const card = cardOf(profile, key);
+      const [plain] = examplesFor(
+        card,
+        profile,
+        FIXTURE_CATALOGUE.filter((p) => !/parfum/.test(p.id)),
+      );
+      expect(plain, key).toBeDefined();
+      const drying = { ...plain, inci: [...plain.inci, 'Alcohol Denat.'] };
+      expect(examplesFor(card, profile, [drying]), key).toEqual([]);
+    }
   });
 });

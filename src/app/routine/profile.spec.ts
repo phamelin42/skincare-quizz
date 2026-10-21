@@ -3,6 +3,7 @@ import {
   CATALOGUE,
   catalogueDefects,
   CHEMICAL_UV_FILTERS,
+  DRYING_ALCOHOL,
   ESSENTIAL_OIL,
   examplesFor,
   normalise,
@@ -269,6 +270,22 @@ describe('exemples de produits', () => {
       expect(CATALOGUE.map((product) => product.id).filter((id) => !shown.has(id))).toEqual([]);
     }, 60_000);
 
+    it('sert la vitamine C d’une peau réactive sans l’alcool de CeraVe, et la garde pour les autres', () => {
+      const alcohol = CATALOGUE.find((product) => product.id === 'cerave-vitamine-c-01')!;
+      expect(alcohol.inci.map(normalise).some((name) => DRYING_ALCOHOL.test(name))).toBe(true);
+      const served = (reactive: boolean) => {
+        const found = new Set<string>();
+        for (const profile of distinctProfiles().filter((p) => p.reactive === reactive)) {
+          const card = products(profile).find((candidate) => candidate.key === 'serum')!;
+          if (profile.serum !== 'vitaminC') continue;
+          for (const example of examplesFor(card, profile, CATALOGUE)) found.add(example.id);
+        }
+        return [...found].sort();
+      };
+      expect(served(true)).toEqual(['the-ordinary-vitamine-c-01']);
+      expect(served(false)).toEqual(['cerave-vitamine-c-01', 'the-ordinary-vitamine-c-01']);
+    }, 60_000);
+
     it('ne porte aucune promesse de résultat dans ses textes', () => {
       const promising = CATALOGUE.filter((product) =>
         [product.name, product.brand, ...product.inci].some((text) => PROMISE.test(text)),
@@ -276,7 +293,7 @@ describe('exemples de produits', () => {
       expect(promising.map((product) => product.id)).toEqual([]);
     });
 
-    it('ne propose à une peau réactive ni parfum, ni huile essentielle, ni filtre chimique', () => {
+    it('ne propose à une peau réactive ni parfum, ni huile essentielle, ni alcool desséchant, ni filtre chimique', () => {
       const mineral = ['zinc oxide', 'titanium dioxide'];
       const chemical = CHEMICAL_UV_FILTERS.map(normalise);
       const defects: string[] = [];
@@ -291,6 +308,7 @@ describe('exemples de produits', () => {
             };
             if (names.some((name) => /parfum|fragrance/.test(name))) fail('parfum');
             if (names.some((name) => ESSENTIAL_OIL.test(name))) fail('huile essentielle');
+            if (names.some((name) => DRYING_ALCOHOL.test(name))) fail('alcool desséchant');
             if (names.some((name) => chemical.includes(name))) fail('filtre chimique');
             if (card.key === 'sunscreen' && !names.some((name) => mineral.includes(name))) {
               fail('pas de filtre minéral');

@@ -15,8 +15,10 @@ async function answerAll(page: Page, keys = ['1', '2', '3', '1', '3', '3', '2', 
 
 /** Peau grasse, sans réaction, imperfections : le catalogue réel y montre des exemples sur presque chaque carte. */
 const OILY_BLEMISHES = ['3', '1', '1', '3', '3', '1', '2', '1', '1', '2'];
-/** Peau sèche et réactive, rides, 40 à 54 ans : le soin du soir est le rétinol. */
-const DRY_WRINKLES = ['1', '3', '3', '3', '2', '4', '3', '1', '1', '2'];
+/** Peau sèche, sans réaction, rides, 40 à 54 ans : le soin du soir est le rétinol. */
+const DRY_WRINKLES = ['1', '3', '3', '3', '3', '4', '3', '1', '1', '2'];
+/** Peau grasse et réactive, taches : sérum à la vitamine C, sans produit à l’alcool. */
+const REACTIVE_SPOTS = ['3', '1', '1', '3', '2', '3', '2', '1', '1', '2'];
 
 const AFFILIATE_NOTICE =
   'En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises.';
@@ -181,9 +183,28 @@ test('le rétinol est suivi de son rappel sous ses exemples', async ({ page }) =
   await expect(page.getByText(AFFILIATE_NOTICE)).toHaveCount(1);
 });
 
+test('une peau réactive ne voit pas le sérum à l’alcool, mais celui sans alcool', async ({
+  page,
+}) => {
+  await reachResult(page, REACTIVE_SPOTS);
+  const vitaminC = page.locator('app-examples', { hasText: 'vitamine C' });
+  await expect(vitaminC.getByRole('link', { name: /acide ascorbique\) 23 %/ })).toBeVisible();
+  await expect(vitaminC.getByRole('link', { name: /acide ascorbique\) 10 %/ })).toHaveCount(0);
+});
+
+test('une peau qui ne réagit pas garde le sérum à l’alcool', async ({ page }) => {
+  // Même parcours que le précédent, sans réaction : le sérum CeraVe réapparaît.
+  await reachResult(
+    page,
+    REACTIVE_SPOTS.map((key, i) => (i === 4 ? '3' : key)),
+  );
+  const vitaminC = page.locator('app-examples', { hasText: 'vitamine C' });
+  await expect(vitaminC.getByRole('link', { name: /acide ascorbique\) 10 %/ })).toBeVisible();
+});
+
 test('les exemples ne débordent pas en largeur à 320 px', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 });
-  for (const keys of [OILY_BLEMISHES, DRY_WRINKLES]) {
+  for (const keys of [OILY_BLEMISHES, DRY_WRINKLES, REACTIVE_SPOTS]) {
     await reachResult(page, keys);
     await expect(page.locator('app-examples').first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
@@ -194,7 +215,7 @@ test('les exemples ne débordent pas en largeur à 320 px', async ({ page }) => 
 
 for (const theme of ['light', 'dark'] as const) {
   test(`axe (WCAG 2.2 AA) sur le résultat avec exemples, thème ${theme}`, async ({ page }) => {
-    for (const keys of [OILY_BLEMISHES, DRY_WRINKLES]) {
+    for (const keys of [OILY_BLEMISHES, DRY_WRINKLES, REACTIVE_SPOTS]) {
       await reachResult(page, keys, theme);
       await expect(page.locator('app-examples').first()).toBeVisible();
       await expectNoViolations(page);
