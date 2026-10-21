@@ -26,6 +26,8 @@ export interface Product {
   readonly active: string | null;
   /** Pour `sunscreen` : l’indice de protection ; `null` ailleurs. */
   readonly spf: 30 | 50 | null;
+  /** Pour `moisturiser` : crème riche ou légère, comme `profile.rich` ; `null` ailleurs. */
+  readonly rich: boolean | null;
   readonly asin: string;
   /** Liste INCI recopiée de la fiche du fabricant. */
   readonly inci: readonly string[];
@@ -67,7 +69,7 @@ export interface Product {
 ## Livraison
 
 1. PR « Structure » : types, affichage, mention, tests, règles. Catalogue vide, donc rien de visible en production.
-2. PR « Catalogue » : tableau (produit, composition, source, lien à contrôler) remis à Phil ; seuls les produits validés sont ajoutés. Catalogue initial : 15 produits, proposé le 2026-10-21, à valider par Phil (PR en brouillon tant qu’il n’a pas ouvert chaque lien). Les données sont dans `src/app/routine/catalogue.ts`, réexportées par `products.ts`.
+2. PR « Catalogue » : tableau (produit, composition, source, lien à contrôler) remis à Phil ; seuls les produits validés sont ajoutés. Catalogue initial : 15 produits, proposé le 2026-10-21, à valider par Phil (PR en brouillon tant qu’il n’a pas ouvert chaque lien). Les données sont dans `src/app/routine/catalogue.ts`, réexportées par `products.ts`. Un hydratant n’est montré que sur la carte de sa richesse (`rich`), et un écran minéral qui contient un photostabilisant organique (méthoxycrylène) est écarté pour une peau réactive comme tout écran hybride.
 
 Quality gates avant chaque PR : `lint`, `typecheck`, `test`, `build`, `e2e` (axe Jour/Nuit sur l'état avec produits), `format:check`.
 
