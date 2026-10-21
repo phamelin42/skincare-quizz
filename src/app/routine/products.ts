@@ -151,9 +151,10 @@ export const ESSENTIAL_OIL = new RegExp(
   [
     'essential oil|huile essentielle',
     '^(?:lavandula|mentha|rosmarinus|melaleuca|eucalyptus|cymbopogon|pelargonium|cananga|ylang|santalum|juniperus|thymus|salvia sclarea|salvia officinalis|origanum|cinnamomum|syzygium aromaticum|eugenia|boswellia|rosa damascena|rosa centifolia|jasminum|chamomilla recutita|matricaria|anthemis|pogostemon|vetiveria|cedrus|litsea|abies|pinus|zingiber|ocimum|piper)\\b.*\\boil$',
-    // Les agrumes : l’huile de pépins est une huile végétale, pas une huile essentielle.
+    // Les agrumes et les noms courants : l’huile de pépins est une huile végétale, pas une huile
+    // essentielle (l’huile de pignon de pin, sous Pinus, reste écartée par prudence).
     '^citrus\\b(?!.*\\bseed\\b).*\\boil$',
-    '^(?:tea tree|lavender|peppermint|spearmint|rosemary|eucalyptus|clove|cinnamon|thyme|geranium|sandalwood|patchouli|bergamot|lemon|orange)\\b.*\\boil$',
+    '^(?:tea tree|lavender|peppermint|spearmint|rosemary|eucalyptus|clove|cinnamon|thyme|geranium|sandalwood|patchouli|bergamot|lemon|orange)\\b(?!.*\\bseed\\b).*\\boil$',
   ].join('|'),
 );
 

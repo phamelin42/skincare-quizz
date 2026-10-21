@@ -14,7 +14,11 @@ describe('RETINOL_NOTE', () => {
   });
 
   it('explique l’application le soir, progressive, avec un écran solaire le matin', () => {
-    expect(RETINOL_NOTE).toMatch(/irriter/);
+    // Le sujet est nommé : « Il » se lirait comme le médecin ou le pharmacien de la phrase d’avant.
+    expect(RETINOL_NOTE).toContain(
+      '. Le rétinol peut irriter et rendre la peau plus sensible au soleil',
+    );
+    expect(RETINOL_NOTE).not.toMatch(/\bIl\b/);
     expect(RETINOL_NOTE).toMatch(/soleil/);
     expect(RETINOL_NOTE).toMatch(/le soir/);
     expect(RETINOL_NOTE).toMatch(/progressive/);
