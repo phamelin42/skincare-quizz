@@ -160,6 +160,12 @@ describe('catalogueDefects', () => {
       altered('evening-retinol', { active: 'ceramides', inci: ['Aqua', 'Ceramide NP'] }),
     ],
     ['un écran solaire sans SPF', altered('sunscreen-30-mineral', { spf: null })],
+    ['un hydratant sans richesse (rich)', altered('moisturiser-light', { rich: null })],
+    ['un sérum qui porte une richesse', altered('serum-niacinamide', { rich: false })],
+    [
+      'une crème riche sans céramide ni squalane',
+      altered('moisturiser-rich', { inci: ['Aqua', 'Glycerin', 'Dimethicone'] }),
+    ],
     [
       'un sérum dont l’INCI ne contient pas son actif',
       altered('serum-niacinamide', { inci: ['Aqua', 'Glycerin'] }),
@@ -748,6 +754,31 @@ describe('examplesFor', () => {
     expect(ids(examplesFor(cardOf(light, 'moisturiser'), light, FIXTURE_CATALOGUE))).toEqual([
       'moisturiser-light',
       'moisturiser-parfum',
+    ]);
+  });
+
+  it('accepte une crème riche au squalane seul, ou aux seuls céramides AP ou EOP', () => {
+    for (const rich of [
+      ['Aqua', 'Squalane'],
+      ['Aqua', 'Ceramide AP'],
+      ['Aqua', 'CERAMIDE EOP'],
+    ]) {
+      expect(catalogueDefects([altered('moisturiser-rich', { inci: rich })])).toEqual([]);
+    }
+  });
+
+  it('ne montre jamais une crème riche sur la carte légère, ni une légère sur la riche', () => {
+    // Une crème riche qui porte aussi les repères de la carte légère (glycérine, hyaluronate).
+    const both = ['Aqua', 'Glycerin', 'Sodium Hyaluronate', 'Ceramide NP', 'Squalane'];
+    const rich = altered('moisturiser-rich', { id: 'rich-both', inci: both });
+    const light = altered('moisturiser-light', { id: 'light-both', inci: both });
+    const dry = profileFor({ afterWash: 'dry', evening: 'dry', pores: 'normal' });
+    expect(dry.rich).toBe(true);
+    expect(ids(examplesFor(cardOf(dry, 'moisturiser'), dry, [light, rich]))).toEqual(['rich-both']);
+    const oily = profileFor({ ...OILY });
+    expect(oily.rich).toBe(false);
+    expect(ids(examplesFor(cardOf(oily, 'moisturiser'), oily, [rich, light]))).toEqual([
+      'light-both',
     ]);
   });
 

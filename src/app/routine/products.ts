@@ -28,6 +28,12 @@ export interface Product {
   readonly active: string | null;
   /** Pour `sunscreen` : l’indice de protection ; `null` ailleurs. */
   readonly spf: 30 | 50 | null;
+  /**
+   * Pour `moisturiser` : crème riche (`true`) ou légère (`false`), comme `profile.rich` ; `null`
+   * ailleurs. Les repères de la carte (glycérine, hyaluronate) se retrouvent aussi dans une
+   * crème riche : sans ce champ, elle s’afficherait sous « Une crème hydratante légère ».
+   */
+  readonly rich: boolean | null;
   readonly asin: string;
   /** Liste INCI recopiée de la fiche du fabricant. */
   readonly inci: readonly string[];
@@ -70,6 +76,11 @@ const ACTIVES: Readonly<Record<string, object>> = { serum: SERUM_NAMES, evening:
  */
 export const PROMISE =
   /guéri|soign|anti-?(rides?|taches?|âge|age|imperfections?|acné|cernes?)|efface|élimin|miracle|garanti|prévient|répare|rajeun|éclaircit|détox|bienfait|clinically proven|cliniquement prouvé|anti-|lifting|repulp|booster/i;
+
+/** Ce qui fait une crème riche : les céramides des repères de la carte, et le squalane. */
+const RICH_MARKERS: ReadonlySet<string> = new Set(
+  ['Ceramide NP', 'Ceramide AP', 'Ceramide EOP', 'Squalane'].map((name) => name.toLowerCase()),
+);
 
 const QUALIFIER = /\s*(\([^)]*\)|\[[^\]]*\]|[*.]+)$/;
 
@@ -187,6 +198,18 @@ export function catalogueDefects(catalogue: readonly Product[]): string[] {
     if (texts.some((text) => PROMISE.test(text))) defect('promesse de résultat dans les textes');
     if (!CARDS.includes(product.card)) defect(`carte inconnue (${product.card})`);
     if (product.card === 'sunscreen' && product.spf === null) defect('SPF manquant');
+    if (product.card === 'moisturiser') {
+      if (product.rich === null) {
+        defect('richesse manquante (rich)');
+      } else if (
+        product.rich &&
+        !product.inci.map(normalise).some((name) => RICH_MARKERS.has(name))
+      ) {
+        defect('crème riche sans céramide ni squalane dans la composition');
+      }
+    } else if (product.rich !== null) {
+      defect('richesse (rich) réservée aux hydratants');
+    }
     const allowed = ACTIVES[product.card];
     if (!allowed) continue;
     if (product.active === null) {
@@ -216,6 +239,7 @@ export function examplesFor(
       if (card.key === 'serum' && product.active !== profile.serum) return false;
       if (card.key === 'evening' && product.active !== profile.evening) return false;
       if (card.key === 'sunscreen' && product.spf !== profile.spf) return false;
+      if (card.key === 'moisturiser' && product.rich !== profile.rich) return false;
       const inci = normalised(product.inci);
       if (profile.reactive) {
         const entries = [...inci];

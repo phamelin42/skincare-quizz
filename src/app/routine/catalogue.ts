@@ -16,6 +16,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'serum',
     active: 'niacinamide',
     spf: null,
+    rich: null,
     asin: 'B01MDTVZTZ',
     inci: [
       'Aqua (Water)',
@@ -40,6 +41,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'serum',
     active: 'niacinamide',
     spf: null,
+    rich: null,
     asin: 'B07QCWTYJ2',
     inci: [
       'Water (Aqua/Eau)',
@@ -80,6 +82,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'serum',
     active: 'vitaminC',
     spf: null,
+    rich: null,
     asin: 'B0G1C8JQGL',
     inci: [
       'Aqua / Water',
@@ -120,6 +123,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'serum',
     active: 'hyaluronic',
     spf: null,
+    rich: null,
     asin: 'B07K3261ZD',
     inci: [
       'Aqua/Water/Eau',
@@ -157,6 +161,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'serum',
     active: 'hyaluronic',
     spf: null,
+    rich: null,
     asin: 'B0CGVGKPJ2',
     inci: [
       'Aqua/Water/Eau',
@@ -194,6 +199,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'serum',
     active: 'soothing',
     spf: null,
+    rich: null,
     asin: 'B09JB5M53S',
     inci: [
       'Water',
@@ -215,6 +221,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'evening',
     active: 'salicylic',
     spf: null,
+    rich: null,
     asin: 'B00949CTQQ',
     inci: [
       'Water (Aqua/Eau)',
@@ -236,6 +243,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'evening',
     active: 'retinol',
     spf: null,
+    rich: null,
     asin: 'B0B913JC2W',
     inci: [
       'Aqua / Water',
@@ -283,6 +291,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'cleanser',
     active: null,
     spf: null,
+    rich: null,
     asin: 'B0D814R8BL',
     inci: [
       'Aqua (Water)',
@@ -312,6 +321,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'cleanser',
     active: null,
     spf: null,
+    rich: null,
     asin: 'B07C5XD33D',
     inci: [
       'Aqua / Water',
@@ -351,6 +361,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'moisturiser',
     active: null,
     spf: null,
+    rich: false,
     asin: 'B07N74F8NP',
     inci: [
       'Aqua (Water)',
@@ -411,6 +422,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'moisturiser',
     active: null,
     spf: null,
+    rich: true,
     asin: 'B0CM1HY52N',
     inci: [
       'Water (Aqua/Eau)',
@@ -460,6 +472,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'moisturiser',
     active: null,
     spf: null,
+    rich: true,
     asin: 'B0DYNQ393Y',
     inci: [
       'Water/Aqua',
@@ -523,6 +536,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'sunscreen',
     active: null,
     spf: 50,
+    rich: null,
     asin: 'B09XGZ4Q6M',
     inci: [
       'Zinc Oxide [Nano]',
@@ -551,6 +565,7 @@ export const CATALOGUE: readonly Product[] = [
     card: 'sunscreen',
     active: null,
     spf: 50,
+    rich: null,
     asin: 'B0BZX2YQ5T',
     inci: [
       'Aqua/Water/Eau',

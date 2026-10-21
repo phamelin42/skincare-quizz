@@ -9,6 +9,7 @@ const base: Product = {
   card: 'serum',
   active: 'niacinamide',
   spf: null,
+  rich: null,
   asin: 'B0TEST0001',
   inci: ['Aqua', 'Glycerin', 'Niacinamide'],
   sourceUrl: 'https://fabricant.example/fiches/essai',

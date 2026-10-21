@@ -11,6 +11,7 @@ function product(id: string, fields: Partial<Product> & Pick<Product, 'card' | '
     brand: 'Marque d’essai',
     active: null,
     spf: null,
+    rich: null,
     asin: `B0TEST${String(counter).padStart(4, '0')}`,
     sourceUrl: `https://fabricant.example/fiches/${id}`,
     validated: '2026-10-20',
@@ -79,14 +80,17 @@ export const FIXTURE_CATALOGUE: readonly Product[] = [
   product('cleanser-parfum', { card: 'cleanser', inci: ['Aqua', 'Glycerin', 'Parfum'] }),
   product('moisturiser-light', {
     card: 'moisturiser',
+    rich: false,
     inci: ['Aqua', 'Glycerin', 'Sodium Hyaluronate'],
   }),
   product('moisturiser-rich', {
     card: 'moisturiser',
+    rich: true,
     inci: ['Aqua', 'Ceramide NP', 'Squalane'],
   }),
   product('moisturiser-parfum', {
     card: 'moisturiser',
+    rich: false,
     inci: ['Aqua', 'Glycerin', 'Fragrance'],
   }),
   product('sunscreen-30-mineral', {

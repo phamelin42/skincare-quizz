@@ -209,6 +209,7 @@ describe('exemples de produits', () => {
         if (card.key === 'serum') coverage.push(profile.serum);
         if (card.key === 'evening') coverage.push(profile.evening!);
         if (card.key === 'sunscreen') coverage.push(String(profile.spf));
+        if (card.key === 'moisturiser') coverage.push(profile.rich ? 'rich' : 'light');
         const examples = examplesFor(card, profile, catalogue);
         if (catalogue.some((product) => product.card === card.key)) {
           reachable.add(coverage.join(':'));
@@ -237,6 +238,11 @@ describe('exemples de produits', () => {
             }
             const hybrid = CHEMICAL_UV_FILTERS.find((name) => inci.includes(name.toLowerCase()));
             if (profile.reactive && hybrid) fail(`écran hybride (${hybrid}) pour peau réactive`);
+          }
+          if (card.key === 'moisturiser' && product.rich !== profile.rich) {
+            fail(
+              `crème ${product.rich ? 'riche' : 'légère'} sur une carte ${profile.rich ? 'riche' : 'légère'}`,
+            );
           }
           if (card.key === 'cleanser' || card.key === 'moisturiser') {
             if (!card.labels.some((label) => inci.includes(label.toLowerCase()))) {
@@ -298,11 +304,14 @@ describe('exemples de produits', () => {
   });
 
   it('n’affiche jamais un hydratant sans repère de la carte, même au catalogue', () => {
-    const bare: Product = {
-      ...FIXTURE_CATALOGUE.find((product) => product.card === 'moisturiser')!,
-      id: 'moisturiser-bare',
+    // Une crème légère et une riche sans repère : chacune serait montrée si seule la richesse comptait.
+    const base = FIXTURE_CATALOGUE.find((product) => product.card === 'moisturiser')!;
+    const bare: Product[] = [false, true].map((rich) => ({
+      ...base,
+      id: `moisturiser-bare-${rich}`,
+      rich,
       inci: ['Aqua', 'Dimethicone'],
-    };
+    }));
     const seen = new Set<string>();
     const shown: string[] = [];
     for (const combination of everyAnswers()) {
@@ -311,7 +320,7 @@ describe('exemples de produits', () => {
       if (seen.has(signature)) continue;
       seen.add(signature);
       for (const card of products(profile)) {
-        if (examplesFor(card, profile, [bare]).length > 0) shown.push(signature);
+        if (examplesFor(card, profile, bare).length > 0) shown.push(signature);
       }
     }
     expect(shown).toEqual([]);
