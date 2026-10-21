@@ -13,6 +13,29 @@ async function answerAll(page: Page, keys = ['1', '2', '3', '1', '3', '3', '2', 
   }
 }
 
+/** Peau grasse, sans réaction, imperfections : le catalogue réel y montre des exemples sur presque chaque carte. */
+const OILY_BLEMISHES = ['3', '1', '1', '3', '3', '1', '2', '1', '1', '2'];
+/** Peau sèche et réactive, rides, 40 à 54 ans : le soin du soir est le rétinol. */
+const DRY_WRINKLES = ['1', '3', '3', '3', '2', '4', '3', '1', '1', '2'];
+
+const AFFILIATE_NOTICE =
+  'En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises.';
+const RETINOL_NOTE_START = 'Le rétinol est déconseillé pendant la grossesse et l’allaitement.';
+
+/** Du départ au résultat, au clavier. */
+async function reachResult(page: Page, keys: string[], theme: 'light' | 'dark' = 'light') {
+  if (theme === 'dark') {
+    await page.addInitScript(() => localStorage.setItem('fuda-theme', 'dark'));
+  }
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Commencer' }).focus();
+  await page.keyboard.press('Enter');
+  await answerAll(page, keys);
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Vos réponses évoquent une peau/ }),
+  ).toBeFocused();
+}
+
 /** axe au repos : une couleur lue pendant une transition serait interpolée. */
 async function expectNoViolations(page: Page) {
   await page.waitForFunction(() =>
@@ -126,5 +149,55 @@ for (const theme of ['light', 'dark'] as const) {
     await answerAll(page);
     await expect(page.getByRole('button', { name: 'Recommencer' })).toBeVisible();
     await expectNoViolations(page);
+  });
+}
+
+test('le résultat propose des exemples Amazon en liens d’affiliation, mention une seule fois', async ({
+  page,
+}) => {
+  await reachResult(page, OILY_BLEMISHES);
+  await expect(page.locator('app-examples').first()).toBeVisible();
+  const links = page.locator('app-examples a');
+  expect(await links.count()).toBeGreaterThan(0);
+  for (const link of await links.all()) {
+    await expect(link).toHaveAttribute(
+      'href',
+      /^https:\/\/www\.amazon\.fr\/dp\/[A-Z0-9]{10}\?tag=phamelin-21$/,
+    );
+    await expect(link).toHaveAttribute('rel', /sponsored/);
+    await expect(link).toHaveAttribute('target', '_blank');
+  }
+  await expect(page.getByText(AFFILIATE_NOTICE)).toHaveCount(1);
+  // Pas de rétinol pour ce profil : pas de rappel.
+  await expect(page.getByText(RETINOL_NOTE_START)).toHaveCount(0);
+});
+
+test('le rétinol est suivi de son rappel sous ses exemples', async ({ page }) => {
+  await reachResult(page, DRY_WRINKLES);
+  const block = page.locator('app-examples', { hasText: 'Sérum au rétinol encapsulé' });
+  await expect(block.getByRole('link', { name: /Sérum au rétinol encapsulé/ })).toBeVisible();
+  await expect(block.getByText(RETINOL_NOTE_START)).toBeVisible();
+  await expect(page.getByText(RETINOL_NOTE_START)).toHaveCount(1);
+  await expect(page.getByText(AFFILIATE_NOTICE)).toHaveCount(1);
+});
+
+test('les exemples ne débordent pas en largeur à 320 px', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 });
+  for (const keys of [OILY_BLEMISHES, DRY_WRINKLES]) {
+    await reachResult(page, keys);
+    await expect(page.locator('app-examples').first()).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+      320,
+    );
+  }
+});
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`axe (WCAG 2.2 AA) sur le résultat avec exemples, thème ${theme}`, async ({ page }) => {
+    for (const keys of [OILY_BLEMISHES, DRY_WRINKLES]) {
+      await reachResult(page, keys, theme);
+      await expect(page.locator('app-examples').first()).toBeVisible();
+      await expectNoViolations(page);
+    }
   });
 }
