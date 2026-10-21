@@ -40,7 +40,7 @@ Une tâche est terminée quand `lint`, `typecheck`, `test` et `build` sont verts
 - `src/app/` : un dossier par composant avec `.ts`, `.html`, `.scss` ; `app` assemble la page et affiche l'écran du moment (`home`, `question`, `analysis`, `result`). Les données et la logique métier vont dans des services à signaux, testés à part.
 - `src/app/routine/` : questions (`questions.ts`), textes (`content.ts`), calcul du profil, des produits et de la routine (`profile.ts`, fonctions pures), parcours (`quiz.service.ts`), catalogue de produits (`catalogue.ts`, données seules), règles de contrôle et jeton d'injection (`products.ts`). `profile.spec.ts` parcourt toutes les combinaisons de réponses.
 - `src/app/examples/` : bloc d'exemples de produits sous chaque carte du résultat.
-- `e2e/` : Playwright (build de production servi par `http-server` sur le port 4300).
+- `e2e/` : Playwright (build de production servi par `http-server` sur le port 4300, ou `E2E_PORT` si un autre projet le tient : sinon `reuseExistingServer` teste son site).
 - `public/` : fichiers servis tels quels (icônes d'onglet).
 
 ## Conventions Angular
