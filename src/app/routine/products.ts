@@ -146,6 +146,9 @@ export const CHEMICAL_UV_FILTERS: readonly string[] = [
   'Bisoctrizole',
   'Ecamsule',
   'Iscotrizinol',
+  // Photostabilisant organique de la famille des cinnamates, pas un filtre UV à proprement
+  // parler : il écarte pourtant l’écran de la peau réactive, comme tout écran « hybride ».
+  'Ethylhexyl Methoxycrylene',
 ];
 
 /**

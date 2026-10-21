@@ -468,6 +468,18 @@ describe('examplesFor', () => {
       }
     });
 
+    it('écarte le méthoxycrylène (photostabilisant) d’un écran minéral pour une peau réactive seulement', () => {
+      const hybrid = altered('sunscreen-30-mineral', {
+        id: 'methoxycrylene',
+        inci: ['Titanium Dioxide (nano)', 'Zinc Oxide (nano)', 'Ethylhexyl Methoxycrylene'],
+      });
+      const calm30 = profileFor({ reactions: 'never', outdoors: 'sometimes' });
+      expect(calm30.spf).toBe(30);
+      const reactive30 = profileFor({ reactions: 'often', outdoors: 'sometimes' });
+      expect(examplesFor(cardOf(reactive30, 'sunscreen'), reactive30, [hybrid])).toEqual([]);
+      expect(examplesFor(cardOf(calm30, 'sunscreen'), calm30, [hybrid])).toEqual([hybrid]);
+    });
+
     it('nomme les filtres chimiques courants et leurs synonymes', () => {
       const lower = CHEMICAL_UV_FILTERS.map((name) => name.toLowerCase());
       for (const name of [
@@ -487,6 +499,7 @@ describe('examplesFor', () => {
         'ethylhexyl salicylate',
         'octyl salicylate',
         'octisalate',
+        'ethylhexyl methoxycrylene',
         'ethylhexyl triazone',
         'octyl triazone',
         'tris-biphenyl triazine',
