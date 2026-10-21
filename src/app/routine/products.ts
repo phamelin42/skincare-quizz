@@ -6,13 +6,6 @@ import type { ProductCard, Profile } from './profile';
 /** Identifiant du compte Partenaires Amazon ; le seul endroit où il s’écrit. */
 export const AFFILIATE_TAG = 'phamelin-21';
 
-/** Mention exigée par le programme Partenaires, affichée dès qu’un lien l’est. */
-export const AFFILIATE_NOTICE =
-  'En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises.';
-
-export const EXAMPLES_NOTE =
-  'Exemples dont la composition correspond aux repères ci-dessus, présentés sans classement.';
-
 export interface Product {
   readonly id: string;
   /**

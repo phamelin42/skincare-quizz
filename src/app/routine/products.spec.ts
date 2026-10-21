@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { type EveningKey, type SerumKey } from './content';
 import {
-  AFFILIATE_NOTICE,
   AFFILIATE_TAG,
   amazonUrl,
   CATALOGUE,
@@ -9,7 +8,6 @@ import {
   CHEMICAL_UV_FILTERS,
   DRYING_ALCOHOL,
   ESSENTIAL_OIL,
-  EXAMPLES_NOTE,
   examplesFor,
   normalise,
   PRODUCT_CATALOGUE,
@@ -68,15 +66,6 @@ const OILY = {
 describe('constantes', () => {
   it('définit le tag d’affiliation à un seul endroit', () => {
     expect(AFFILIATE_TAG).toBe('phamelin-21');
-  });
-
-  it('affiche la mention des Partenaires Amazon et la précision sur les exemples', () => {
-    expect(AFFILIATE_NOTICE).toBe(
-      'En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises.',
-    );
-    expect(EXAMPLES_NOTE).toBe(
-      'Exemples dont la composition correspond aux repères ci-dessus, présentés sans classement.',
-    );
   });
 
   it('livre un catalogue sans défaut, avec au moins un produit par type à exemples', () => {
@@ -193,11 +182,6 @@ describe('catalogueDefects', () => {
   it('accepte un INCI suivi d’une précision entre parenthèses ou crochets', () => {
     const qualified = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide (vitamin B3)'] });
     expect(catalogueDefects([qualified])).toEqual([]);
-  });
-
-  it('ne trouve aucune promesse de résultat dans les mentions affichées', () => {
-    expect(AFFILIATE_NOTICE).not.toMatch(PROMISE);
-    expect(EXAMPLES_NOTE).not.toMatch(PROMISE);
   });
 
   it('signale une promesse de résultat dans le nom, la marque ou l’INCI', () => {

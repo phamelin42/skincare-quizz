@@ -45,7 +45,7 @@ export interface Product {
 - Sous chaque carte de produit : un bloc « Exemples sur Amazon » avec nom, marque, une ligne de composition et un lien.
 - Liens `target="_blank"` `rel="sponsored noopener noreferrer"`, annoncés « (nouvel onglet) ».
 - Carte sans produit validé : aucun bloc, ni vide ni factice.
-- Dès qu'au moins un lien est affiché : mention visible « En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises. » et précision que ce sont des exemples dont la composition correspond, pas un classement.
+- Aucune mention d'affiliation ni précision sur les exemples n'est affichée : Phil l'a retirée le 21/10/2026 (elle figurait au départ : « En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises. »).
 - Le texte « Des types de produits, sans marque » de `result.html`, la meta description de `index.html` et la ligne du pied de page de `app.html` sont réécrits.
 - L'encart « Ceci n'est pas un avis médical » reste.
 
@@ -59,7 +59,7 @@ export interface Product {
 - Le `name` d'un produit est un libellé descriptif neutre écrit par nous (type, actif, dosage : « Sérum à la niacinamide 10 % »), jamais le titre marketing d'Amazon ; la marque est le champ `brand`. `PROMISE` refuse aussi `anti-` (avec trait d'union), `lifting`, `repulp` et `booster`.
 - Sous les exemples de la carte du soir, seulement quand le profil demande du rétinol et qu'au moins un exemple est affiché, `RETINOL_NOTE` (`content.ts`) rappelle que le rétinol est déconseillé pendant la grossesse et l'allaitement, renvoie vers un médecin ou un pharmacien dans une phrase à part, sans nuance sur la grossesse, et explique le soir et l'écran solaire du matin. Rien de plus que ce que le site dit déjà, aucun chiffre.
 - L'ASIN respecte `^[A-Z0-9]{10}$` ; chaque produit a une source en `https://` et une date ; les `id` sont uniques.
-- Les textes ne contiennent aucune promesse de résultat : `catalogueDefects` relit le nom, la marque et chaque INCI, et les deux mentions affichées, avec la liste `PROMISE` de `products.ts`.
+- Les textes ne contiennent aucune promesse de résultat : `catalogueDefects` relit le nom, la marque et chaque INCI, avec la liste `PROMISE` de `products.ts`.
 - La comparaison des INCI ignore la casse et une précision finale entre `(…)` ou `[…]` (`Titanium Dioxide [nano]` compte comme `Titanium Dioxide`), ainsi qu'un `*` (avant ou après) et un point final (`Lavandula Angustifolia Oil*` reste une huile essentielle). `CI 77891` et `CI 77947` comptent comme dioxyde de titane et oxyde de zinc. L'`active` d'un `serum` ou d'un `evening` est limité aux clés de `SERUM_NAMES` et `EVENING_TITLES`, les seules que le profil demande. Le bloc d'exemples est projeté dans l'emplacement `actions` de la carte, après les pastilles de l'étiquette.
 - Le tag d'affiliation apparaît une fois dans chaque lien, et seulement `amazon.fr` est un hôte de lien produit.
 
@@ -82,4 +82,3 @@ PA-API, prix et images Amazon, mesure Umami des clics (le site n'est pas encore 
 
 - Contrôler chaque lien Amazon du tableau.
 - Déclarer le site dans le compte Partenaires Amazon.
-- Confirmer le libellé de la mention légale.

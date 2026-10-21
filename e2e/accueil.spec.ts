@@ -20,8 +20,6 @@ const DRY_WRINKLES = ['1', '3', '3', '3', '3', '4', '3', '1', '1', '2'];
 /** Peau grasse et réactive, taches : sérum à la vitamine C, sans produit à l’alcool. */
 const REACTIVE_SPOTS = ['3', '1', '1', '3', '2', '3', '2', '1', '1', '2'];
 
-const AFFILIATE_NOTICE =
-  'En tant que Partenaire Amazon, je réalise un bénéfice sur les achats remplissant les conditions requises.';
 const RETINOL_NOTE_START = 'Le rétinol est déconseillé pendant la grossesse et l’allaitement.';
 
 /** Du départ au résultat, au clavier. */
@@ -169,7 +167,7 @@ test('le résultat propose des exemples Amazon en liens d’affiliation, mention
     await expect(link).toHaveAttribute('rel', /sponsored/);
     await expect(link).toHaveAttribute('target', '_blank');
   }
-  await expect(page.getByText(AFFILIATE_NOTICE)).toHaveCount(1);
+  await expect(page.getByText('Partenaire Amazon', { exact: false })).toHaveCount(0);
   // Pas de rétinol pour ce profil : pas de rappel.
   await expect(page.getByText(RETINOL_NOTE_START)).toHaveCount(0);
 });
@@ -180,7 +178,6 @@ test('le rétinol est suivi de son rappel sous ses exemples', async ({ page }) =
   await expect(block.getByRole('link', { name: /Sérum au rétinol encapsulé/ })).toBeVisible();
   await expect(block.getByText(RETINOL_NOTE_START)).toBeVisible();
   await expect(page.getByText(RETINOL_NOTE_START)).toHaveCount(1);
-  await expect(page.getByText(AFFILIATE_NOTICE)).toHaveCount(1);
 });
 
 test('une peau réactive ne voit pas le sérum à l’alcool, mais celui sans alcool', async ({

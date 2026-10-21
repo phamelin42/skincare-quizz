@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Result } from './result';
-import { AFFILIATE_NOTICE, EXAMPLES_NOTE, PRODUCT_CATALOGUE } from '../routine/products';
+import { PRODUCT_CATALOGUE } from '../routine/products';
 import { FIXTURE_CATALOGUE } from '../routine/products.fixture';
 import { RETINOL_NOTE } from '../routine/content';
 import { type QuestionId, QUESTIONS } from '../routine/questions';
@@ -33,16 +33,13 @@ describe('Result', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
-  const count = (text: string, part: string) => text.split(part).length - 1;
-
-  it('n’affiche aucun exemple ni mention d’affiliation quand le catalogue est vide', async () => {
+  it('n’affiche aucun exemple quand le catalogue est vide', async () => {
     const element = await render([]);
     expect(element.querySelector('app-examples')).toBeNull();
-    expect(element.textContent).not.toContain('Partenaire Amazon');
     expect(element.textContent).not.toContain('Exemples sur Amazon');
   });
 
-  it('affiche les exemples sous la carte concernée, avec la mention une seule fois', async () => {
+  it('affiche les exemples sous la carte concernée, sans mention d’affiliation (décision de Phil du 21/10/2026)', async () => {
     const serum = FIXTURE_CATALOGUE.filter((product) => product.id === 'serum-niacinamide');
     const element = await render(serum);
 
@@ -53,8 +50,8 @@ describe('Result', () => {
     expect(blocks[0].querySelector('a')?.textContent).toContain('serum-niacinamide');
 
     const text = element.textContent!.replace(/[ \t\n]+/g, ' ');
-    expect(count(text, AFFILIATE_NOTICE)).toBe(1);
-    expect(count(text, EXAMPLES_NOTE)).toBe(1);
+    expect(text).not.toContain('Partenaire Amazon');
+    expect(text).not.toContain('sans classement');
   });
 
   it('place les exemples dans l’emplacement des actions, après les pastilles de l’étiquette', async () => {
