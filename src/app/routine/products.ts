@@ -1,4 +1,5 @@
 import { InjectionToken } from '@angular/core';
+import { CATALOGUE } from './catalogue';
 import { EVENING_TITLES, INGREDIENTS, SERUM_NAMES } from './content';
 import type { ProductCard, Profile } from './profile';
 
@@ -27,19 +28,22 @@ export interface Product {
   readonly active: string | null;
   /** Pour `sunscreen` : l’indice de protection ; `null` ailleurs. */
   readonly spf: 30 | 50 | null;
+  /**
+   * Pour `moisturiser` : crème riche (`true`) ou légère (`false`), comme `profile.rich` ; `null`
+   * ailleurs. Les repères de la carte (glycérine, hyaluronate) se retrouvent aussi dans une
+   * crème riche : sans ce champ, elle s’afficherait sous « Une crème hydratante légère ».
+   */
+  readonly rich: boolean | null;
   readonly asin: string;
   /** Liste INCI recopiée de la fiche du fabricant. */
   readonly inci: readonly string[];
   readonly sourceUrl: string;
-  /** Date de validation du lien par Phil (AAAA-MM-JJ). */
+  /** Date de proposition du lien, qui vaut validation une fois que Phil l’a ouvert (AAAA-MM-JJ). */
   readonly validated: string;
 }
 
-/**
- * Vide tant que Phil n’a pas ouvert et validé chaque lien Amazon : un ASIN ou un lien
- * deviné n’a pas sa place ici.
- */
-export const CATALOGUE: readonly Product[] = [];
+/** Le catalogue vit dans `catalogue.ts` (des données, sans logique) ; il se lit ici comme avant. */
+export { CATALOGUE };
 
 /** Un jeton plutôt que l’import direct, pour que les tests fournissent leur propre catalogue. */
 export const PRODUCT_CATALOGUE = new InjectionToken<readonly Product[]>('PRODUCT_CATALOGUE', {
@@ -72,6 +76,11 @@ const ACTIVES: Readonly<Record<string, object>> = { serum: SERUM_NAMES, evening:
  */
 export const PROMISE =
   /guéri|soign|anti-?(rides?|taches?|âge|age|imperfections?|acné|cernes?)|efface|élimin|miracle|garanti|prévient|répare|rajeun|éclaircit|détox|bienfait|clinically proven|cliniquement prouvé|anti-|lifting|repulp|booster/i;
+
+/** Ce qui fait une crème riche : les céramides des repères de la carte, et le squalane. */
+const RICH_MARKERS: ReadonlySet<string> = new Set(
+  ['Ceramide NP', 'Ceramide AP', 'Ceramide EOP', 'Squalane'].map((name) => name.toLowerCase()),
+);
 
 const QUALIFIER = /\s*(\([^)]*\)|\[[^\]]*\]|[*.]+)$/;
 
@@ -137,6 +146,9 @@ export const CHEMICAL_UV_FILTERS: readonly string[] = [
   'Bisoctrizole',
   'Ecamsule',
   'Iscotrizinol',
+  // Photostabilisant organique de la famille des cinnamates, pas un filtre UV à proprement
+  // parler : il écarte pourtant l’écran de la peau réactive, comme tout écran « hybride ».
+  'Ethylhexyl Methoxycrylene',
 ];
 
 /**
@@ -157,6 +169,16 @@ export const ESSENTIAL_OIL = new RegExp(
     '^(?:tea tree|lavender|peppermint|spearmint|rosemary|eucalyptus|clove|cinnamon|thyme|geranium|sandalwood|patchouli|bergamot|lemon|orange)\\b(?!.*\\bseed\\b).*\\boil$',
   ].join('|'),
 );
+
+/**
+ * L'alcool desséchant (éthanol) sur une entrée INCI déjà normalisée : `Alcohol`, `Alcohol Denat.`,
+ * `SD Alcohol 40-B`, `Denatured Alcohol`, `Ethanol`, `Isopropyl Alcohol`. Les alcools gras
+ * (cétylique, cétéarylique, stéarylique, béhénylique…) sont des corps gras doux, et l'alcool
+ * benzylique un conservateur : aucun ne correspond, car l'entrée entière doit être l'un des noms
+ * ci-dessus.
+ */
+export const DRYING_ALCOHOL =
+  /^(?:alcohol(?: denat\.?)?(?: denatured)?|alcohol denat\.? [\w.-]+|sd alcohol(?: [\w-]+)?|denatured alcohol|ethanol|isopropyl alcohol)$/;
 
 const CHEMICAL_UV = new Set(CHEMICAL_UV_FILTERS.map(normalise));
 
@@ -189,6 +211,18 @@ export function catalogueDefects(catalogue: readonly Product[]): string[] {
     if (texts.some((text) => PROMISE.test(text))) defect('promesse de résultat dans les textes');
     if (!CARDS.includes(product.card)) defect(`carte inconnue (${product.card})`);
     if (product.card === 'sunscreen' && product.spf === null) defect('SPF manquant');
+    if (product.card === 'moisturiser') {
+      if (product.rich === null) {
+        defect('richesse manquante (rich)');
+      } else if (
+        product.rich &&
+        !product.inci.map(normalise).some((name) => RICH_MARKERS.has(name))
+      ) {
+        defect('crème riche sans céramide ni squalane dans la composition');
+      }
+    } else if (product.rich !== null) {
+      defect('richesse (rich) réservée aux hydratants');
+    }
     const allowed = ACTIVES[product.card];
     if (!allowed) continue;
     if (product.active === null) {
@@ -218,11 +252,13 @@ export function examplesFor(
       if (card.key === 'serum' && product.active !== profile.serum) return false;
       if (card.key === 'evening' && product.active !== profile.evening) return false;
       if (card.key === 'sunscreen' && product.spf !== profile.spf) return false;
+      if (card.key === 'moisturiser' && product.rich !== profile.rich) return false;
       const inci = normalised(product.inci);
       if (profile.reactive) {
         const entries = [...inci];
         const scented = entries.some((name) => /^(parfum|fragrance)/.test(name));
-        if (scented || entries.some((name) => ESSENTIAL_OIL.test(name))) return false;
+        const drying = entries.some((name) => DRYING_ALCOHOL.test(name));
+        if (scented || drying || entries.some((name) => ESSENTIAL_OIL.test(name))) return false;
         if (card.key === 'sunscreen') {
           const mineral = entries.some((name) => MINERAL_UV.test(name));
           // Minéral seulement : un filtre chimique en plus (écran hybride) écarte le produit.

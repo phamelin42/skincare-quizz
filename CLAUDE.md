@@ -7,7 +7,7 @@ Site Angular 22 construit avec la bibliothèque **Fuda** (`design-system-fuda`).
 Questionnaire de routine de soin, d'après la maquette validée par Philippe (https://claude.ai/artifact/7tXzRcTiFjYA4GBiYTryAC) : 10 questions à choix unique (peau, habitudes, temps disponible), puis un écran de résultat avec le type de peau évoqué, les ingrédients à repérer, une routine matin et soir et des types de produits. Pas de score : aucune réponse n'est juste ou fausse.
 
 - Le contenu est rédigé à la main et vérifié : un fait douteux ne vaut rien. Sources fiables uniquement (dermatologie, étiquetage, organismes de santé).
-- Aucun conseil médical, aucun diagnostic (« vos réponses évoquent… », jamais « vous avez… »), aucune promesse de résultat. Un produit n'est nommé que s'il figure dans `src/app/routine/products.ts` : composition (INCI) lue chez le fabricant, lien Amazon validé par Phil, aucun prix, aucun classement, aucune promesse. L'encart « Ceci n'est pas un avis médical » reste sur le résultat.
+- Aucun conseil médical, aucun diagnostic (« vos réponses évoquent… », jamais « vous avez… »), aucune promesse de résultat. Un produit n'est nommé que s'il figure dans `src/app/routine/catalogue.ts` : composition (INCI) lue chez le fabricant, lien Amazon validé par Phil, aucun prix, aucun classement, aucune promesse. L'encart « Ceci n'est pas un avis médical » reste sur le résultat.
 - Le nom d'un produit est un libellé descriptif neutre écrit par nous (type, actif, dosage), jamais le titre marketing d'Amazon.
 - Les liens produits sont des liens d'affiliation Amazon (tag `phamelin-21`) : la mention d'affiliation est obligatoire et le catalogue est validé par Phil avant tout ajout.
 - Rien n'est enregistré : les réponses vivent en mémoire, dans `QuizService`.
@@ -38,9 +38,9 @@ Une tâche est terminée quand `lint`, `typecheck`, `test` et `build` sont verts
 ## Structure
 
 - `src/app/` : un dossier par composant avec `.ts`, `.html`, `.scss` ; `app` assemble la page et affiche l'écran du moment (`home`, `question`, `analysis`, `result`). Les données et la logique métier vont dans des services à signaux, testés à part.
-- `src/app/routine/` : questions (`questions.ts`), textes (`content.ts`), calcul du profil, des produits et de la routine (`profile.ts`, fonctions pures), parcours (`quiz.service.ts`), catalogue de produits, règles de contrôle et jeton d'injection (`products.ts`). `profile.spec.ts` parcourt toutes les combinaisons de réponses.
+- `src/app/routine/` : questions (`questions.ts`), textes (`content.ts`), calcul du profil, des produits et de la routine (`profile.ts`, fonctions pures), parcours (`quiz.service.ts`), catalogue de produits (`catalogue.ts`, données seules), règles de contrôle et jeton d'injection (`products.ts`). `profile.spec.ts` parcourt toutes les combinaisons de réponses.
 - `src/app/examples/` : bloc d'exemples de produits sous chaque carte du résultat.
-- `e2e/` : Playwright (build de production servi par `http-server` sur le port 4300).
+- `e2e/` : Playwright (build de production servi par `http-server` sur le port 4300, ou `E2E_PORT` si un autre projet le tient : sinon `reuseExistingServer` teste son site).
 - `public/` : fichiers servis tels quels (icônes d'onglet).
 
 ## Conventions Angular
