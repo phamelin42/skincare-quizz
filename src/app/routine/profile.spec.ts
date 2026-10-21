@@ -6,10 +6,11 @@ import {
   ESSENTIAL_OIL,
   examplesFor,
   normalise,
+  PROMISE,
   type Product,
 } from './products';
 import { FIXTURE_CATALOGUE } from './products.fixture';
-import { analyse, type Answers, ingredients, products, routine } from './profile';
+import { analyse, type Answers, ingredients, type Profile, products, routine } from './profile';
 import { type QuestionId, QUESTIONS } from './questions';
 
 /** Réponses par valeur ; les questions non précisées prennent leur dernière option. */
@@ -32,6 +33,21 @@ function* everyAnswers(index = 0, prefix: number[] = []): Generator<Answers> {
   for (let option = 0; option < QUESTIONS[index].options.length; option++) {
     yield* everyAnswers(index + 1, [...prefix, option]);
   }
+}
+
+let distinct: Profile[] | undefined;
+
+/** Les profils différents que les réponses peuvent produire (quelques centaines, pas des centaines de milliers). */
+function distinctProfiles(): Profile[] {
+  if (!distinct) {
+    const seen = new Map<string, Profile>();
+    for (const combination of everyAnswers()) {
+      const profile = analyse(combination);
+      seen.set(JSON.stringify(profile), profile);
+    }
+    distinct = [...seen.values()];
+  }
+  return distinct;
 }
 
 describe('analyse', () => {
@@ -177,7 +193,9 @@ describe('exemples de produits', () => {
   it('n’affiche que des exemples cohérents avec le profil, pour toutes les réponses', () => {
     const defects: string[] = [];
     const seen = new Set<string>();
-    // Ce que le catalogue d’essai peut couvrir : sans cela, un filtre qui ne renvoie rien passerait.
+    // Le catalogue d’essai (qui couvre chaque cas) et le vrai, soumis aux mêmes contrôles.
+    const catalogue = [...FIXTURE_CATALOGUE, ...CATALOGUE];
+    // Ce que le catalogue peut couvrir : sans cela, un filtre qui ne renvoie rien passerait.
     const reachable = new Set<string>();
     const shown = new Set<string>();
     const mineral = ['zinc oxide', 'titanium dioxide'];
@@ -191,8 +209,8 @@ describe('exemples de produits', () => {
         if (card.key === 'serum') coverage.push(profile.serum);
         if (card.key === 'evening') coverage.push(profile.evening!);
         if (card.key === 'sunscreen') coverage.push(String(profile.spf));
-        const examples = examplesFor(card, profile, FIXTURE_CATALOGUE);
-        if (FIXTURE_CATALOGUE.some((product) => product.card === card.key)) {
+        const examples = examplesFor(card, profile, catalogue);
+        if (catalogue.some((product) => product.card === card.key)) {
           reachable.add(coverage.join(':'));
         }
         if (examples.length > 3 && defects.length < 5) defects.push(`${card.key} : plus de 3`);
@@ -232,6 +250,52 @@ describe('exemples de produits', () => {
     expect([...reachable].filter((key) => !shown.has(key))).toEqual([]);
     expect(seen.size).toBeGreaterThan(1);
   }, 60_000);
+
+  describe('catalogue réel', () => {
+    it('montre chaque produit sur au moins une carte, pour au moins un profil', () => {
+      const shown = new Set<string>();
+      for (const profile of distinctProfiles()) {
+        for (const card of products(profile)) {
+          for (const example of examplesFor(card, profile, CATALOGUE)) shown.add(example.id);
+        }
+      }
+      // Un produit qui ne s’affiche jamais est un produit mort : filtre trop strict ou mauvaise carte.
+      expect(CATALOGUE.map((product) => product.id).filter((id) => !shown.has(id))).toEqual([]);
+    }, 60_000);
+
+    it('ne porte aucune promesse de résultat dans ses textes', () => {
+      const promising = CATALOGUE.filter((product) =>
+        [product.name, product.brand, ...product.inci].some((text) => PROMISE.test(text)),
+      );
+      expect(promising.map((product) => product.id)).toEqual([]);
+    });
+
+    it('ne propose à une peau réactive ni parfum, ni huile essentielle, ni filtre chimique', () => {
+      const mineral = ['zinc oxide', 'titanium dioxide'];
+      const chemical = CHEMICAL_UV_FILTERS.map(normalise);
+      const defects: string[] = [];
+      let reactiveCards = 0;
+      for (const profile of distinctProfiles().filter((candidate) => candidate.reactive)) {
+        for (const card of products(profile)) {
+          reactiveCards++;
+          for (const product of examplesFor(card, profile, CATALOGUE)) {
+            const names = product.inci.map(normalise);
+            const fail = (message: string) => {
+              if (defects.length < 5) defects.push(`${product.id} sur ${card.key} : ${message}`);
+            };
+            if (names.some((name) => /parfum|fragrance/.test(name))) fail('parfum');
+            if (names.some((name) => ESSENTIAL_OIL.test(name))) fail('huile essentielle');
+            if (names.some((name) => chemical.includes(name))) fail('filtre chimique');
+            if (card.key === 'sunscreen' && !names.some((name) => mineral.includes(name))) {
+              fail('pas de filtre minéral');
+            }
+          }
+        }
+      }
+      expect(defects).toEqual([]);
+      expect(reactiveCards).toBeGreaterThan(0);
+    }, 60_000);
+  });
 
   it('n’affiche jamais un hydratant sans repère de la carte, même au catalogue', () => {
     const bare: Product = {
