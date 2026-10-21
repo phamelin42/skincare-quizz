@@ -9,7 +9,7 @@ Questionnaire de routine de soin, d'après la maquette validée par Philippe (ht
 - Le contenu est rédigé à la main et vérifié : un fait douteux ne vaut rien. Sources fiables uniquement (dermatologie, étiquetage, organismes de santé).
 - Aucun conseil médical, aucun diagnostic (« vos réponses évoquent… », jamais « vous avez… »), aucune promesse de résultat. Un produit n'est nommé que s'il figure dans `src/app/routine/catalogue.ts` : composition (INCI) lue chez le fabricant, lien Amazon validé par Phil, aucun prix, aucun classement, aucune promesse. L'encart « Ceci n'est pas un avis médical » reste sur le résultat.
 - Le nom d'un produit est un libellé descriptif neutre écrit par nous (type, actif, dosage), jamais le titre marketing d'Amazon.
-- Les liens produits sont des liens d'affiliation Amazon (tag `phamelin-21`) : la mention d'affiliation est obligatoire et le catalogue est validé par Phil avant tout ajout.
+- Les liens produits sont des liens d'affiliation Amazon (tag `phamelin-21`) : aucune mention d'affiliation n'est affichée (décision de Phil du 21/10/2026) et le catalogue est validé par Phil avant tout ajout.
 - Rien n'est enregistré : les réponses vivent en mémoire, dans `QuizService`.
 
 ## Commandes

@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { FdAlert, FdBadge, FdButton, FdCard } from 'fuda';
 import { CONCERN_LABELS, INGREDIENTS, SKIN_TYPES, START_ADVICE } from '../routine/content';
-import { AFFILIATE_NOTICE, EXAMPLES_NOTE } from '../routine/products';
 import { QuizService } from '../routine/quiz.service';
 import { Examples } from '../examples/examples';
 
@@ -38,10 +37,6 @@ export class Result {
       ingredients: result.ingredients.map((key) => ({ key, ...INGREDIENTS[key] })),
       minutes: MINUTES[profile.time],
       advice: START_ADVICE[profile.start],
-      // La mention suit les liens : elle n’apparaît que si une carte en montre au moins un.
-      affiliate: result.products.some((card) => card.examples.length > 0),
-      notice: AFFILIATE_NOTICE,
-      note: EXAMPLES_NOTE,
     };
   });
 
