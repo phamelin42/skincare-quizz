@@ -78,8 +78,14 @@ describe('constantes', () => {
     );
   });
 
-  it('ne livre aucun produit tant que Phil n’a pas validé de lien', () => {
-    expect(CATALOGUE).toEqual([]);
+  it('livre un catalogue sans défaut, avec au moins un produit par type à exemples', () => {
+    expect(catalogueDefects(CATALOGUE)).toEqual([]);
+    for (const card of ['serum', 'evening', 'cleanser', 'moisturiser', 'sunscreen']) {
+      expect(
+        CATALOGUE.some((product) => product.card === card),
+        card,
+      ).toBe(true);
+    }
   });
 
   it('injecte le catalogue du dépôt, remplaçable dans les tests', () => {

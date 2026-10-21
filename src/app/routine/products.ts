@@ -1,4 +1,5 @@
 import { InjectionToken } from '@angular/core';
+import { CATALOGUE } from './catalogue';
 import { EVENING_TITLES, INGREDIENTS, SERUM_NAMES } from './content';
 import type { ProductCard, Profile } from './profile';
 
@@ -31,15 +32,12 @@ export interface Product {
   /** Liste INCI recopiée de la fiche du fabricant. */
   readonly inci: readonly string[];
   readonly sourceUrl: string;
-  /** Date de validation du lien par Phil (AAAA-MM-JJ). */
+  /** Date de proposition du lien, qui vaut validation une fois que Phil l’a ouvert (AAAA-MM-JJ). */
   readonly validated: string;
 }
 
-/**
- * Vide tant que Phil n’a pas ouvert et validé chaque lien Amazon : un ASIN ou un lien
- * deviné n’a pas sa place ici.
- */
-export const CATALOGUE: readonly Product[] = [];
+/** Le catalogue vit dans `catalogue.ts` (des données, sans logique) ; il se lit ici comme avant. */
+export { CATALOGUE };
 
 /** Un jeton plutôt que l’import direct, pour que les tests fournissent leur propre catalogue. */
 export const PRODUCT_CATALOGUE = new InjectionToken<readonly Product[]>('PRODUCT_CATALOGUE', {
