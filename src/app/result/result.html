@@ -102,7 +102,7 @@
             }
           </ul>
           @if (product.examples.length > 0) {
-            <app-examples slot="actions" [products]="product.examples" />
+            <app-examples slot="actions" [products]="product.examples" [note]="product.note" />
           }
         </article>
       }

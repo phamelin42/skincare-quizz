@@ -1,5 +1,13 @@
 import { INGREDIENTS } from './content';
-import { CATALOGUE, catalogueDefects, examplesFor, type Product } from './products';
+import {
+  CATALOGUE,
+  catalogueDefects,
+  CHEMICAL_UV_FILTERS,
+  ESSENTIAL_OIL,
+  examplesFor,
+  normalise,
+  type Product,
+} from './products';
 import { FIXTURE_CATALOGUE } from './products.fixture';
 import { analyse, type Answers, ingredients, products, routine } from './profile';
 import { type QuestionId, QUESTIONS } from './questions';
@@ -196,6 +204,8 @@ describe('exemples de produits', () => {
           };
           if (product.card !== card.key) fail('mauvaise carte');
           if (profile.reactive && /parfum|fragrance/.test(inci)) fail('parfum pour peau réactive');
+          const oil = product.inci.find((name) => ESSENTIAL_OIL.test(normalise(name)));
+          if (profile.reactive && oil) fail(`huile essentielle (${oil}) pour peau réactive`);
           if (card.key === 'serum' || card.key === 'evening') {
             const active = card.key === 'serum' ? profile.serum : profile.evening;
             if (product.active !== active) fail(`actif ${product.active}, profil ${active}`);
@@ -207,6 +217,8 @@ describe('exemples de produits', () => {
             if (profile.reactive && !mineral.some((name) => inci.includes(name))) {
               fail('pas de filtre minéral pour peau réactive');
             }
+            const hybrid = CHEMICAL_UV_FILTERS.find((name) => inci.includes(name.toLowerCase()));
+            if (profile.reactive && hybrid) fail(`écran hybride (${hybrid}) pour peau réactive`);
           }
           if (card.key === 'cleanser' || card.key === 'moisturiser') {
             if (!card.labels.some((label) => inci.includes(label.toLowerCase()))) {

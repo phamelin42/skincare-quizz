@@ -6,8 +6,11 @@ import {
   amazonUrl,
   CATALOGUE,
   catalogueDefects,
+  CHEMICAL_UV_FILTERS,
+  ESSENTIAL_OIL,
   EXAMPLES_NOTE,
   examplesFor,
+  normalise,
   PRODUCT_CATALOGUE,
   PROMISE,
   type Product,
@@ -217,11 +220,62 @@ describe('catalogueDefects', () => {
       'bienfaits',
       'Clinically Proven',
       'cliniquement prouvé',
+      'anti-UV',
+      'Anti-Pollution',
+      'effet lifting',
+      'Lifting',
+      'repulpe',
+      'REPULPANT',
+      'Booster d’éclat',
+      'booster',
     ];
     for (const term of terms) {
       const defects = catalogueDefects([altered('serum-niacinamide', { name: `Sérum ${term}` })]);
       expect(defects, term).toHaveLength(1);
     }
+  });
+
+  it('refuse un titre marketing en nom de produit, la marque restant un champ à part', () => {
+    const marketing = [
+      'Sérum Visage Anti-Rides Booster d’éclat',
+      'Crème Anti-UV Lifting Repulpant',
+      'Fluide Anti-Pollution',
+    ];
+    for (const name of marketing) {
+      const defects = catalogueDefects([altered('serum-niacinamide', { name })]);
+      expect(defects, name).toHaveLength(1);
+      expect(defects[0], name).toContain('promesse de résultat');
+    }
+    const neutral = altered('serum-niacinamide', {
+      name: 'Sérum à la niacinamide 10 %',
+      brand: 'Marque d’essai',
+    });
+    expect(catalogueDefects([neutral])).toEqual([]);
+  });
+
+  it('ne prend pas pour une promesse les noms INCI ordinaires', () => {
+    const inci = [
+      'Aqua',
+      'Glycerin',
+      'Tocopherol',
+      'Tocopheryl Acetate',
+      'Butylene Glycol',
+      'Sodium Hyaluronate',
+      'Niacinamide',
+      'Ascorbyl Glucoside',
+      'Caprylic/Capric Triglyceride',
+      'Squalane',
+      'Zinc Oxide',
+      'Titanium Dioxide [nano]',
+      'Antioxidant Complex',
+      'Panthenol',
+      'Phenoxyethanol',
+    ];
+    for (const entry of inci) {
+      expect(PROMISE.test(entry), entry).toBe(false);
+    }
+    const product = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide', ...inci] });
+    expect(catalogueDefects([product])).toEqual([]);
   });
 
   it('signale un id en double', () => {
@@ -303,7 +357,11 @@ describe('examplesFor', () => {
       const profile = profileFor({ reactions: 'never', outdoors });
       expect(profile.spf).toBe(spf);
       const examples = examplesFor(cardOf(profile, 'sunscreen'), profile, FIXTURE_CATALOGUE);
-      expect(ids(examples)).toEqual([`sunscreen-${spf}-mineral`, `sunscreen-${spf}-chemical`]);
+      expect(ids(examples)).toEqual([
+        `sunscreen-${spf}-mineral`,
+        `sunscreen-${spf}-chemical`,
+        `sunscreen-${spf}-hybrid`,
+      ]);
     }
   });
 
@@ -366,10 +424,276 @@ describe('examplesFor', () => {
     expect(examplesFor(card, reactive, [chemical])).toEqual([]);
   });
 
+  describe('écrans solaires hybrides', () => {
+    const reactive = profileFor({ reactions: 'often', outdoors: 'daily' });
+    const calm = profileFor({ reactions: 'never', outdoors: 'daily' });
+    const hybrid = altered('sunscreen-50-mineral', {
+      id: 'hybride',
+      inci: ['Aqua', 'Titanium Dioxide [nano]', 'Octocrylene'],
+    });
+
+    it('écarte pour une peau réactive un écran à filtre minéral qui contient aussi un filtre chimique', () => {
+      expect(examplesFor(cardOf(reactive, 'sunscreen'), reactive, [hybrid])).toEqual([]);
+      // Contrôle négatif : une peau qui ne réagit pas le garde, seul le SPF compte.
+      expect(examplesFor(cardOf(calm, 'sunscreen'), calm, [hybrid])).toEqual([hybrid]);
+    });
+
+    it('garde un écran uniquement minéral pour les deux profils', () => {
+      const mineral = altered('sunscreen-50-mineral', {
+        inci: ['Aqua', 'Zinc Oxide', 'Titanium Dioxide [nano]', 'Glycerin'],
+      });
+      expect(examplesFor(cardOf(reactive, 'sunscreen'), reactive, [mineral])).toEqual([mineral]);
+      expect(examplesFor(cardOf(calm, 'sunscreen'), calm, [mineral])).toEqual([mineral]);
+    });
+
+    it('écarte chacun des filtres chimiques de la liste, même avec casse ou précision', () => {
+      const card = cardOf(reactive, 'sunscreen');
+      for (const filter of CHEMICAL_UV_FILTERS) {
+        for (const entry of [filter, filter.toUpperCase(), `${filter} [nano]`, `${filter} (UV)`]) {
+          const product = altered('sunscreen-50-mineral', { inci: ['Aqua', 'Zinc Oxide', entry] });
+          expect(examplesFor(card, reactive, [product]), entry).toEqual([]);
+        }
+      }
+    });
+
+    it('nomme les filtres chimiques courants et leurs synonymes', () => {
+      const lower = CHEMICAL_UV_FILTERS.map((name) => name.toLowerCase());
+      for (const name of [
+        'octocrylene',
+        'butyl methoxydibenzoylmethane',
+        'avobenzone',
+        'parsol 1789',
+        'ethylhexyl methoxycinnamate',
+        'octyl methoxycinnamate',
+        'octinoxate',
+        'benzophenone-1',
+        'benzophenone-2',
+        'benzophenone-3',
+        'benzophenone-4',
+        'oxybenzone',
+        'homosalate',
+        'ethylhexyl salicylate',
+        'octyl salicylate',
+        'octisalate',
+        'ethylhexyl triazone',
+        'octyl triazone',
+        'tris-biphenyl triazine',
+        'bemotrizinol',
+        'disodium phenyl dibenzimidazole tetrasulfonate',
+        'ethylhexyl dimethyl paba',
+        'peg-25 paba',
+        'polysilicone-15',
+      ]) {
+        expect(lower, name).toContain(name);
+      }
+    });
+
+    it('ne prend pas pour un filtre chimique un ingrédient ordinaire ou le filtre minéral', () => {
+      const lower = CHEMICAL_UV_FILTERS.map((name) => name.toLowerCase());
+      for (const name of ['zinc oxide', 'titanium dioxide', 'glycerin', 'aqua', 'tocopherol']) {
+        expect(lower, name).not.toContain(name);
+      }
+    });
+
+    it('reconnaît CI 77891 comme dioxyde de titane et CI 77947 comme oxyde de zinc', () => {
+      const card = cardOf(reactive, 'sunscreen');
+      for (const entry of [
+        'CI 77891',
+        'CI 77891 (Titanium Dioxide)',
+        'ci 77891 [nano]',
+        'CI 77947',
+        'CI 77947 (Zinc Oxide)',
+      ]) {
+        const product = altered('sunscreen-50-mineral', { inci: ['Aqua', entry] });
+        expect(examplesFor(card, reactive, [product]), entry).toEqual([product]);
+      }
+      const hybridCi = altered('sunscreen-50-mineral', {
+        inci: ['Aqua', 'CI 77891', 'Octocrylene'],
+      });
+      expect(examplesFor(card, reactive, [hybridCi])).toEqual([]);
+      const otherCi = altered('sunscreen-50-mineral', { inci: ['Aqua', 'CI 77491'] });
+      expect(examplesFor(card, reactive, [otherCi])).toEqual([]);
+    });
+
+    it('exige toujours un filtre minéral pour une peau réactive', () => {
+      const none = altered('sunscreen-50-mineral', { inci: ['Aqua', 'Glycerin'] });
+      expect(examplesFor(cardOf(reactive, 'sunscreen'), reactive, [none])).toEqual([]);
+    });
+  });
+
+  describe('huiles essentielles', () => {
+    const reactive = profileFor({ ...OILY, reactions: 'often', concern: 'blemishes' });
+    const calm = profileFor({ ...OILY, concern: 'blemishes' });
+    const oil = 'Lavandula Angustifolia (Lavender) Oil';
+
+    it('écarte pour une peau réactive un produit à l’huile essentielle, sur chaque carte', () => {
+      for (const key of ['serum', 'evening', 'cleanser', 'moisturiser', 'sunscreen']) {
+        for (const profile of [reactive, calm]) {
+          const card = cardOf(profile, key);
+          const [plain] = examplesFor(card, profile, FIXTURE_CATALOGUE);
+          expect(plain, `${key} : un produit de base`).toBeDefined();
+          const scented = { ...plain, id: `${plain.id}-huile`, inci: [...plain.inci, oil] };
+          const shown = ids(examplesFor(card, profile, [scented]));
+          // Contrôle négatif : sans la réaction, le même produit reste proposé.
+          expect(shown, `${key}, ${profile.reactive ? 'réactive' : 'calme'}`).toEqual(
+            profile.reactive ? [] : [scented.id],
+          );
+        }
+      }
+    });
+
+    it('garde les produits sans huile essentielle pour une peau réactive', () => {
+      const serum = examplesFor(cardOf(reactive, 'serum'), reactive, FIXTURE_CATALOGUE);
+      expect(ids(serum)).toContain('serum-niacinamide');
+      expect(ids(serum)).not.toContain('serum-niacinamide-huile-essentielle');
+      const calmSerum = examplesFor(cardOf(calm, 'serum'), calm, FIXTURE_CATALOGUE);
+      expect(ids(calmSerum)).toContain('serum-niacinamide-huile-essentielle');
+    });
+
+    it('écarte l’huile essentielle même suivie d’une précision ou écrite en majuscules', () => {
+      const card = cardOf(reactive, 'serum');
+      for (const entry of [
+        `${oil} [bio]`,
+        oil.toUpperCase(),
+        'Huile Essentielle de lavande',
+        'Lavandula Angustifolia Oil*',
+        'Lavandula Angustifolia (Lavender) Oil.',
+      ]) {
+        const scented = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide', entry] });
+        expect(examplesFor(card, reactive, [scented]), entry).toEqual([]);
+      }
+    });
+
+    it('écarte aussi le parfum, qui reste exclu', () => {
+      const card = cardOf(reactive, 'serum');
+      const parfum = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide', 'Parfum'] });
+      expect(examplesFor(card, reactive, [parfum])).toEqual([]);
+    });
+
+    it('reconnaît les huiles essentielles de plantes aromatiques', () => {
+      const essential = [
+        'Lavandula Angustifolia (Lavender) Oil',
+        'Lavandula Hybrida Oil',
+        'Mentha Piperita (Peppermint) Oil',
+        'Rosmarinus Officinalis (Rosemary) Leaf Oil',
+        'Melaleuca Alternifolia (Tea Tree) Leaf Oil',
+        'Eucalyptus Globulus Leaf Oil',
+        'Cymbopogon Schoenanthus Oil',
+        'Pelargonium Graveolens Flower Oil',
+        'Cananga Odorata Flower Oil',
+        'Ylang Ylang Oil',
+        'Santalum Album (Sandalwood) Oil',
+        'Juniperus Communis Fruit Oil',
+        'Thymus Vulgaris (Thyme) Oil',
+        'Salvia Sclarea (Clary) Oil',
+        'Origanum Vulgare Oil',
+        'Cinnamomum Zeylanicum Bark Oil',
+        'Syzygium Aromaticum (Clove) Flower Oil',
+        'Boswellia Carterii Oil',
+        'Citrus Aurantium Dulcis (Orange) Peel Oil',
+        'Citrus Limon (Lemon) Peel Oil',
+        'Citrus Aurantium Amara (Bitter Orange) Flower Oil',
+        'Rosa Damascena Flower Oil',
+        'Jasminum Officinale (Jasmine) Oil',
+        'Chamomilla Recutita (Matricaria) Flower Oil',
+        'Matricaria Chamomilla Flower Oil',
+        'Essential Oil',
+        'Lavender Essential Oil',
+        'Huile essentielle de lavande',
+        'Lavandula Angustifolia Oil*',
+        'Lavandula Angustifolia (Lavender) Oil.',
+        'Lavandula Angustifolia (Lavender) Oil *',
+        '*Lavandula Angustifolia Oil',
+        'Eugenia Caryophyllus (Clove) Bud Oil',
+        'Pinus Sylvestris Leaf Oil',
+        'Rosa Centifolia Flower Oil',
+        'Anthemis Nobilis Flower Oil',
+        'Zingiber Officinale (Ginger) Root Oil',
+        'Ocimum Basilicum (Basil) Oil',
+        'Piper Nigrum (Pepper) Fruit Oil',
+        'Citrus Sinensis (Orange) Oil',
+        'Citrus Aurantium Bergamia (Bergamot) Fruit Oil',
+        'Tea Tree Oil',
+        'Lavender Oil',
+        'Peppermint Oil',
+        'Eucalyptus Oil',
+      ];
+      for (const entry of essential) {
+        expect(ESSENTIAL_OIL.test(normalise(entry)), entry).toBe(true);
+      }
+    });
+
+    it('ne prend pas pour une huile essentielle les huiles végétales ni les autres ingrédients', () => {
+      const carrier = [
+        'Helianthus Annuus (Sunflower) Seed Oil',
+        'Simmondsia Chinensis (Jojoba) Seed Oil',
+        'Prunus Amygdalus Dulcis (Sweet Almond) Oil',
+        'Squalane',
+        'Caprylic/Capric Triglyceride',
+        'Rosa Canina Fruit Oil',
+        'Butyrospermum Parkii (Shea) Butter',
+        'Lavandula Angustifolia (Lavender) Flower Extract',
+        'Mentha Piperita (Peppermint) Leaf Extract',
+        'Citrus Grandis (Grapefruit) Seed Extract',
+        'Salvia Hispanica Seed Oil',
+        'Mineral Oil',
+        'Glycerin',
+        'Aqua',
+        'Argania Spinosa Kernel Oil',
+        'Argania Spinosa Kernel Oil*',
+        'Olea Europaea Fruit Oil',
+        'Helianthus Annuus Seed Oil.',
+        'Simmondsia Chinensis (Jojoba) Seed Oil *',
+        'Prunus Amygdalus Dulcis (Sweet Almond) Oil',
+        'Citrus Paradisi (Grapefruit) Seed Oil',
+        'Orange Seed Oil',
+        'Lemon Seed Oil',
+        'Citrus Sinensis (Orange) Seed Oil',
+        'Pinus Pinaster Bark Extract',
+        'Piper Methysticum Root Extract',
+        'Sweet Almond Oil',
+      ];
+      for (const entry of carrier) {
+        expect(ESSENTIAL_OIL.test(normalise(entry)), entry).toBe(false);
+      }
+      const card = cardOf(reactive, 'serum');
+      for (const entry of carrier) {
+        const plain = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide', entry] });
+        expect(examplesFor(card, reactive, [plain]), entry).toEqual([plain]);
+      }
+    });
+  });
+
   it('reconnaît un repère d’étiquette suivi d’une précision au nettoyant', () => {
     const oily = profileFor({ ...OILY, concern: 'none' });
     const qualified = altered('cleanser-zinc', { inci: ['Aqua', 'Glycerin (vegetable)'] });
     expect(examplesFor(cardOf(oily, 'cleanser'), oily, [qualified])).toEqual([qualified]);
+  });
+
+  it('écarte un parfum suivi de * ou d’un point, ou précédé d’un *', () => {
+    const profile = profileFor({ ...OILY, reactions: 'often', concern: 'blemishes' });
+    const card = cardOf(profile, 'serum');
+    for (const word of ['Parfum*', 'Fragrance.', 'PARFUM *', '*Parfum', 'Parfum (Fragrance)*']) {
+      const scented = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide', word] });
+      expect(examplesFor(card, profile, [scented]), word).toEqual([]);
+    }
+  });
+
+  it('ignore un * ou un point final dans les comparaisons d’INCI (actif, repère, filtre minéral)', () => {
+    const marked = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide*'] });
+    expect(catalogueDefects([marked])).toEqual([]);
+    const dotted = altered('serum-niacinamide', { inci: ['Aqua', 'Niacinamide.'] });
+    expect(catalogueDefects([dotted])).toEqual([]);
+    const oily = profileFor({ ...OILY, concern: 'none' });
+    const label = altered('cleanser-zinc', { inci: ['Aqua', 'Glycerin*'] });
+    expect(examplesFor(cardOf(oily, 'cleanser'), oily, [label])).toEqual([label]);
+    const reactive = profileFor({ reactions: 'often', outdoors: 'daily' });
+    const mineral = altered('sunscreen-50-mineral', { inci: ['Aqua', 'Zinc Oxide*'] });
+    expect(examplesFor(cardOf(reactive, 'sunscreen'), reactive, [mineral])).toEqual([mineral]);
+    const chemical = altered('sunscreen-50-mineral', {
+      inci: ['Aqua', 'Zinc Oxide', 'Octocrylene*'],
+    });
+    expect(examplesFor(cardOf(reactive, 'sunscreen'), reactive, [chemical])).toEqual([]);
   });
 
   it('écarte aussi Fragrance (Parfum) et Parfum (Fragrance) pour une peau réactive', () => {

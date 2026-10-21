@@ -1,4 +1,5 @@
 import { computed, inject, Service, signal } from '@angular/core';
+import { RETINOL_NOTE } from './content';
 import { examplesFor, PRODUCT_CATALOGUE } from './products';
 import { type Answers, analyse, ingredients, products, routine } from './profile';
 import { QUESTIONS } from './questions';
@@ -43,10 +44,12 @@ export class QuizService {
     const profile = analyse(answers as Answers);
     return {
       profile,
-      products: products(profile).map((card) => ({
-        ...card,
-        examples: examplesFor(card, profile, this.catalogue),
-      })),
+      products: products(profile).map((card) => {
+        const examples = examplesFor(card, profile, this.catalogue);
+        // Le rappel suit les exemples : sans produit de rétinol à montrer, il n’a rien à accompagner.
+        const retinol = card.key === 'evening' && profile.evening === 'retinol';
+        return { ...card, examples, note: retinol && examples.length > 0 ? RETINOL_NOTE : null };
+      }),
       routine: routine(profile),
       ingredients: ingredients(profile),
     };

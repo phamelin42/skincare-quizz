@@ -82,6 +82,15 @@ export const EVENING_FREQUENCY: Record<EveningKey, string> = {
   retinol: 'Deux soirs par semaine pendant trois semaines, puis un soir sur deux.',
 };
 
+/**
+ * Rappel sous les exemples de rétinol. La grossesse reprend l’encart « Ceci n’est pas un avis
+ * médical » du résultat, le soir et l’écran solaire le matin reprennent `INGREDIENTS.retinol` :
+ * rien de plus que ce que le site dit déjà, et aucun chiffre. Elle reste aussi ferme que
+ * l’encart, sans « en cas de doute » devant la grossesse.
+ */
+export const RETINOL_NOTE =
+  'Le rétinol est déconseillé pendant la grossesse et l’allaitement. Demandez conseil à un médecin ou à un pharmacien. Le rétinol peut irriter et rendre la peau plus sensible au soleil, d’où une application progressive, le soir, avec un écran solaire le matin.';
+
 export const EVENING_TITLES: Record<EveningKey, string> = {
   salicylic: 'Un soin à l’acide salicylique',
   azelaic: 'Un soin à l’acide azélaïque',

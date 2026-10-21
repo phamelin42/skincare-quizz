@@ -16,9 +16,10 @@ const base: Product = {
 };
 
 describe('Examples', () => {
-  async function render(products: readonly Product[]) {
+  async function render(products: readonly Product[], note?: string | null) {
     const fixture = TestBed.createComponent(Examples);
     fixture.componentRef.setInput('products', products);
+    if (note !== undefined) fixture.componentRef.setInput('note', note);
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
     return { element, links: [...element.querySelectorAll('a')] };
@@ -73,5 +74,18 @@ describe('Examples', () => {
     const { element } = await render(two);
     expect(element.querySelector('img, svg, picture')).toBeNull();
     expect(element.textContent).not.toMatch(/€|EUR/);
+  });
+
+  it('affiche la note sous la liste quand elle est donnée', async () => {
+    const { element } = await render(two, 'Une note d’essai.');
+    const note = element.querySelector('p.app-examples__note');
+    expect(note?.textContent?.trim()).toBe('Une note d’essai.');
+    const list = element.querySelector('ul')!;
+    expect(list.compareDocumentPosition(note!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('n’affiche aucune note par défaut, ni pour une note nulle', async () => {
+    expect((await render(two)).element.querySelector('.app-examples__note')).toBeNull();
+    expect((await render(two, null)).element.querySelector('.app-examples__note')).toBeNull();
   });
 });

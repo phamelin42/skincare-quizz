@@ -2,14 +2,18 @@ import { TestBed } from '@angular/core/testing';
 import { Result } from './result';
 import { AFFILIATE_NOTICE, EXAMPLES_NOTE, PRODUCT_CATALOGUE } from '../routine/products';
 import { FIXTURE_CATALOGUE } from '../routine/products.fixture';
-import { QUESTIONS } from '../routine/questions';
+import { RETINOL_NOTE } from '../routine/content';
+import { type QuestionId, QUESTIONS } from '../routine/questions';
 import { ANALYSIS_DELAY, ANSWER_DELAY, QuizService } from '../routine/quiz.service';
 
 describe('Result', () => {
   afterEach(() => vi.useRealTimers());
 
   /** Première option partout : peau grasse, sérum à la niacinamide (voir quiz.service.spec.ts). */
-  async function render(catalogue: readonly (typeof FIXTURE_CATALOGUE)[number][]) {
+  async function render(
+    catalogue: readonly (typeof FIXTURE_CATALOGUE)[number][],
+    values: Partial<Record<QuestionId, string>> = {},
+  ) {
     TestBed.configureTestingModule({
       providers: [{ provide: PRODUCT_CATALOGUE, useValue: catalogue }],
     });
@@ -17,8 +21,9 @@ describe('Result', () => {
     // Les minuteries du parcours sont simulées ; le rendu, lui, attend de vraies minuteries.
     vi.useFakeTimers();
     quiz.start();
-    QUESTIONS.forEach(() => {
-      quiz.choose(0);
+    QUESTIONS.forEach((question) => {
+      const index = question.options.findIndex((option) => option.value === values[question.id]);
+      quiz.choose(Math.max(index, 0));
       vi.advanceTimersByTime(ANSWER_DELAY);
     });
     vi.advanceTimersByTime(ANALYSIS_DELAY);
@@ -75,5 +80,43 @@ describe('Result', () => {
     expect(element.querySelector('fd-alert')?.textContent).toContain(
       'Ceci n’est pas un avis médical',
     );
+  });
+
+  describe('note du rétinol', () => {
+    const retinol = { concern: 'wrinkles', reactions: 'never' } as const;
+    const notes = (element: HTMLElement) => [...element.querySelectorAll('.app-examples__note')];
+
+    it('s’affiche sous les exemples du soin du soir au rétinol, une seule fois', async () => {
+      const element = await render(FIXTURE_CATALOGUE, retinol);
+      const found = notes(element);
+      expect(found).toHaveLength(1);
+      expect(found[0].textContent?.trim()).toBe(RETINOL_NOTE);
+      expect(found[0].textContent).toContain('grossesse');
+      const card = found[0].closest('article')!;
+      expect(card.querySelector('[slot="title"]')?.textContent).toMatch(/rétinol/i);
+      const list = found[0].closest('app-examples')!.querySelector('ul')!;
+      expect(
+        list.compareDocumentPosition(found[0]) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
+    it('n’apparaît pas pour les autres soins du soir', async () => {
+      for (const values of [
+        { concern: 'blemishes', reactions: 'never' },
+        { concern: 'blemishes', reactions: 'often' },
+      ] as const) {
+        TestBed.resetTestingModule();
+        const element = await render(FIXTURE_CATALOGUE, values);
+        expect(element.querySelector('app-examples'), values.reactions).not.toBeNull();
+        expect(notes(element), values.reactions).toEqual([]);
+      }
+    });
+
+    it('n’apparaît pas sans exemple de rétinol', async () => {
+      const without = FIXTURE_CATALOGUE.filter((product) => product.id !== 'evening-retinol');
+      expect(notes(await render(without, retinol))).toEqual([]);
+      TestBed.resetTestingModule();
+      expect(notes(await render([], retinol))).toEqual([]);
+    });
   });
 });
