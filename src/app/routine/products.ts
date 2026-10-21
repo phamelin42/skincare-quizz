@@ -88,7 +88,9 @@ export function normalise(name: string): string {
   let result = name
     .trim()
     .toLowerCase()
-    .replace(/^[*\s]+/, '');
+    .replace(/^[*\s]+/, '')
+    // Certains fabricants écrivent `Non-Nano Zinc Oxide` : c'est le même filtre minéral.
+    .replace(/^(?:non[-\s]?nano|nano)\s+/, '');
   while (QUALIFIER.test(result)) result = result.replace(QUALIFIER, '');
   return result;
 }

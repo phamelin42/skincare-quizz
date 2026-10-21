@@ -282,8 +282,12 @@ describe('exemples de produits', () => {
         }
         return [...found].sort();
       };
-      expect(served(true)).toEqual(['the-ordinary-vitamine-c-01']);
-      expect(served(false)).toEqual(['cerave-vitamine-c-01', 'the-ordinary-vitamine-c-01']);
+      expect(served(true)).toEqual(['the-ordinary-vitamine-c-01', 'the-ordinary-vitamine-c-02']);
+      expect(served(false)).toEqual([
+        'cerave-vitamine-c-01',
+        'the-ordinary-vitamine-c-01',
+        'the-ordinary-vitamine-c-02',
+      ]);
     }, 60_000);
 
     it('ne porte aucune promesse de résultat dans ses textes', () => {

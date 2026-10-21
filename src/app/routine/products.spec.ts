@@ -421,6 +421,21 @@ describe('examplesFor', () => {
     expect(examplesFor(card, reactive, [chemical])).toEqual([]);
   });
 
+  it('reconnaît « Non-Nano Zinc Oxide » comme un oxyde de zinc, pour une peau réactive', () => {
+    const reactive = profileFor({ reactions: 'often', outdoors: 'daily' });
+    const card = cardOf(reactive, 'sunscreen');
+    for (const entry of ['Non-Nano Zinc Oxide', 'NON NANO TITANIUM DIOXIDE', 'Nano Zinc Oxide']) {
+      expect(normalise(entry), entry).toMatch(/^(zinc oxide|titanium dioxide)$/);
+      const mineral = altered('sunscreen-50-mineral', { inci: ['Aqua', entry] });
+      expect(examplesFor(card, reactive, [mineral]), entry).toEqual([mineral]);
+    }
+    // Le préfixe ne rend pas minéral ce qui ne l'est pas : un filtre chimique « nano » reste chimique.
+    const chemical = altered('sunscreen-50-chemical', {
+      inci: ['Aqua', 'Non-Nano Zinc Oxide', 'Nano Avobenzone'],
+    });
+    expect(examplesFor(card, reactive, [chemical])).toEqual([]);
+  });
+
   describe('écrans solaires hybrides', () => {
     const reactive = profileFor({ reactions: 'often', outdoors: 'daily' });
     const calm = profileFor({ reactions: 'never', outdoors: 'daily' });
