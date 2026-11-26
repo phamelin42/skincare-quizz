@@ -1,4 +1,4 @@
-import { RETINOL_NOTE } from './content';
+import { INGREDIENTS, RETINOL_NOTE } from './content';
 import { PROMISE } from './products';
 
 describe('RETINOL_NOTE', () => {
@@ -34,5 +34,17 @@ describe('RETINOL_NOTE', () => {
     expect(RETINOL_NOTE).not.toContain("'");
     expect(RETINOL_NOTE).not.toMatch(/ [:;?!]/);
     expect(RETINOL_NOTE).toContain('’');
+  });
+});
+
+describe('INGREDIENTS', () => {
+  it('donne la niacinamide à 2 à 5\u00a0%', () => {
+    expect(INGREDIENTS.niacinamide.dose).toBe('2 à 5\u00a0%');
+  });
+
+  it('précise que la concentration de la vitamine C vaut pour l’acide ascorbique', () => {
+    // Les dérivés listés en INCI (glucoside, phosphate) s’emploient à d’autres concentrations.
+    expect(INGREDIENTS.vitaminC.dose).toBe('10 à 15\u00a0% d’acide ascorbique');
+    expect(INGREDIENTS.vitaminC.inci).toContain('Ascorbic Acid');
   });
 });

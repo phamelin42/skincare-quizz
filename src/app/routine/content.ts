@@ -27,13 +27,13 @@ export const INGREDIENTS: Record<IngredientKey, Ingredient> = {
   niacinamide: {
     name: 'Niacinamide (vitamine B3)',
     inci: ['Niacinamide'],
-    dose: '4 à 10 %',
+    dose: '2 à 5 %',
     why: 'Utilisée pour équilibrer le sébum et atténuer les imperfections. En général bien tolérée.',
   },
   vitaminC: {
     name: 'Vitamine C',
     inci: ['Ascorbic Acid', 'Ascorbyl Glucoside', 'Sodium Ascorbyl Phosphate'],
-    dose: '10 à 15 %',
+    dose: '10 à 15 % d’acide ascorbique',
     why: 'Antioxydante : elle aide à uniformiser le teint. À appliquer le matin, avant l’écran solaire.',
   },
   hyaluronic: {

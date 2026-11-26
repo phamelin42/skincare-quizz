@@ -121,6 +121,15 @@ describe('analyse', () => {
 });
 
 describe('produits et routine', () => {
+  it('affiche sur la carte du sérum la concentration courante de son actif', () => {
+    const serum = (concern: string) =>
+      products(analyse(answers({ concern, breakouts: 'rarely' }))).find((c) => c.key === 'serum');
+    expect(serum('blemishes')?.texture).toBe('Concentration courante\u00a0: 2 à 5\u00a0%');
+    expect(serum('spots')?.texture).toBe(
+      'Concentration courante\u00a0: 10 à 15\u00a0% d’acide ascorbique',
+    );
+  });
+
   it('ajoute démaquillant et exfoliation douce à une routine de 10 minutes', () => {
     const keys = products(
       analyse(
